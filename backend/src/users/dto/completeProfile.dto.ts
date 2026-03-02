@@ -1,0 +1,28 @@
+import { IsOptional, IsString, MaxLength } from 'class-validator';
+
+export class CompleteProfileDto {
+  @IsString()
+  @MaxLength(100)
+  firstName: string;
+
+  @IsString()
+  @MaxLength(100)
+  lastName: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  headline?: string;
+
+  @IsOptional()
+  @IsString()
+  about?: string;
+
+  @IsOptional()
+  @IsString()
+  profilePicture?: string;
+
+  @IsOptional()
+  @IsString()
+  coverPicture?: string;
+}

@@ -1,0 +1,13 @@
+.feed-page {
+  background: #f3f2ef;
+  min-height: 100vh;
+}
+
+/* main layout */
+.feed-body {
+  max-width: 1128px;
+  margin: 24px auto;
+  display: grid;
+  grid-template-columns: 225px 1fr 300px;
+  gap: 24px;
+}
