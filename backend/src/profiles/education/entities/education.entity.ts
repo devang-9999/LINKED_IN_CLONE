@@ -5,6 +5,7 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity('education')
@@ -27,7 +28,10 @@ export class Education {
   @Column({ type: 'date', nullable: true })
   endDate: Date;
 
-  @ManyToOne(() => User, (user) => user.educations, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.educations, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @CreateDateColumn()

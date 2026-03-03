@@ -11,7 +11,7 @@ import {
   Paper,
 } from "@mui/material";
 
-import "./Education.css"; 
+import "./Education.css";
 
 const months = [
   "January",
@@ -30,7 +30,14 @@ const months = [
 
 const years = Array.from({ length: 60 }, (_, i) => 1970 + i);
 
-export default function EducationForm() {
+interface Props {
+  onClose?: () => void;
+  onSuccess?: () => void;
+}
+
+export default function EducationForm({ onClose, onSuccess }: Props) {
+  const [loading, setLoading] = useState(false);
+
   const [form, setForm] = useState({
     schoolName: "",
     degree: "",
@@ -46,21 +53,49 @@ export default function EducationForm() {
   };
 
   const formatDate = (month: string, year: string) => {
-    if (!month || !year) return null;
+    if (!month || !year) return undefined;
     const monthIndex = months.indexOf(month);
-    return new Date(Number(year), monthIndex, 1);
+    const date = new Date(Number(year), monthIndex, 1);
+    return date.toISOString().split("T")[0]; // yyyy-mm-dd
   };
 
   const handleSubmit = async () => {
-    const payload = {
-      schoolName: form.schoolName,
-      degree: form.degree || undefined,
-      fieldOfStudy: form.fieldOfStudy || undefined,
-      startDate: formatDate(form.startMonth, form.startYear),
-      endDate: formatDate(form.endMonth, form.endYear),
-    };
+    try {
+      setLoading(true);
 
-    console.log("Submitting:", payload);
+      const token = localStorage.getItem("token");
+
+      const payload = {
+        schoolName: form.schoolName,
+        degree: form.degree || undefined,
+        fieldOfStudy: form.fieldOfStudy || undefined,
+        startDate: formatDate(form.startMonth, form.startYear),
+        endDate: formatDate(form.endMonth, form.endYear),
+      };
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/education`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to save education");
+      }
+
+      if (onSuccess) onSuccess();
+      if (onClose) onClose();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -110,6 +145,11 @@ export default function EducationForm() {
             value={form.startMonth}
             onChange={handleChange}
             fullWidth
+            SelectProps={{
+              MenuProps: {
+                disablePortal: true,
+              },
+            }}
           >
             {months.map((month) => (
               <MenuItem key={month} value={month}>
@@ -125,6 +165,11 @@ export default function EducationForm() {
             value={form.startYear}
             onChange={handleChange}
             fullWidth
+            SelectProps={{
+              MenuProps: {
+                disablePortal: true,
+              },
+            }}
           >
             {years.map((year) => (
               <MenuItem key={year} value={year}>
@@ -144,6 +189,11 @@ export default function EducationForm() {
             value={form.endMonth}
             onChange={handleChange}
             fullWidth
+            SelectProps={{
+              MenuProps: {
+                disablePortal: true,
+              },
+            }}
           >
             {months.map((month) => (
               <MenuItem key={month} value={month}>
@@ -159,6 +209,11 @@ export default function EducationForm() {
             value={form.endYear}
             onChange={handleChange}
             fullWidth
+            SelectProps={{
+              MenuProps: {
+                disablePortal: true,
+              },
+            }}
           >
             {years.map((year) => (
               <MenuItem key={year} value={year}>
@@ -172,10 +227,12 @@ export default function EducationForm() {
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={!form.schoolName}
+            disabled={!form.schoolName || loading}
           >
-            Save
+            {loading ? "Saving..." : "Save"}
           </Button>
+
+          <Button onClick={onClose}>Cancel</Button>
         </Box>
       </Paper>
     </Box>

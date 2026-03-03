@@ -14,8 +14,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKey: process.env.JWT_SECRET || 'DEVANG',
     });
   }
-
   validate(payload: any) {
+    console.log(payload);
     return {
       userId: payload.sub,
       email: payload.email,

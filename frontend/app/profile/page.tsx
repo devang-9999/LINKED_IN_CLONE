@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import "./Profile.css";
 
 import ProfileHeader from "@/components/Profile/ProfileHeader/ProfileHeader";
@@ -11,7 +12,16 @@ import ExperienceForm from "@/components/Profile/Experience/Experience";
 import SkillsForm from "@/components/Profile/Skills/Skills";
 import LinkedInNavbar from "@/components/Navbar/Navbar";
 
+interface UserProfile {
+  firstName?: string;
+  lastName?: string;
+  profilePicture?: string;
+  coverPicture?: string;
+}
+
 export default function ProfilePage() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
   const [openMenu, setOpenMenu] = useState(false);
   const [openEducation, setOpenEducation] = useState(false);
   const [openExperience, setOpenExperience] = useState(false);
@@ -20,22 +30,59 @@ export default function ProfilePage() {
   const isModalOpen =
     openMenu || openEducation || openExperience || openSkills;
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get(
+          "http://localhost:5000/users/me",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setProfile(res.data);
+      } catch (error) {
+        console.error("Failed to fetch profile", error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const backendUrl = "http://localhost:5000/uploads/";
+
   return (
     <>
       {!isModalOpen && <LinkedInNavbar />}
 
       <div className={`profile-container ${isModalOpen ? "page-blur" : ""}`}>
 
-        <ProfileHeader onAddSection={() => setOpenMenu(true)} />
+        <ProfileHeader
+          firstName={profile?.firstName}
+          lastName={profile?.lastName}
+          profilePicture={
+            profile?.profilePicture
+              ? backendUrl + profile.profilePicture
+              : undefined
+          }
+          coverPicture={
+            profile?.coverPicture
+              ? backendUrl + profile.coverPicture
+              : undefined
+          }
+          onAddSection={() => setOpenMenu(true)}
+        />
 
         <ProfileSections
           onAddEducation={() => setOpenEducation(true)}
           onAddExperience={() => setOpenExperience(true)}
           onAddSkills={() => setOpenSkills(true)}
         />
-
       </div>
-
 
       {openMenu && (
         <div className="modal-wrapper" onClick={() => setOpenMenu(false)}>

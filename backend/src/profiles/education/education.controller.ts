@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import {
   Controller,
   Post,
@@ -9,39 +10,43 @@ import {
   Body,
   Param,
   UseGuards,
-  Request,
+  Req,
 } from '@nestjs/common';
 import { EducationService } from './education.service';
 import { CreateEducationDto } from './dto/create-education.dto';
 import { UpdateEducationDto } from './dto/update-education.dto';
 import { JwtAuthGuard } from 'src/auth/jwtGaurds/jwt-auth.gaurd';
 
-@Controller('profiles/education')
+@Controller('education')
 @UseGuards(JwtAuthGuard)
 export class EducationController {
   constructor(private readonly educationService: EducationService) {}
 
   @Post()
-  create(@Request() req, @Body() dto: CreateEducationDto) {
-    return this.educationService.create(req.user, dto);
+  create(@Req() req: any, @Body() dto: CreateEducationDto) {
+    return this.educationService.create(req.user.userId, dto);
   }
 
   @Get()
-  findMyEducations(@Request() req) {
-    return this.educationService.findAllByUser(req.user.id);
+  findMyEducations(@Req() req: any) {
+    return this.educationService.findAllByUser(req.user.userId);
   }
 
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Request() req,
+    @Req() req: any,
     @Body() dto: UpdateEducationDto,
   ) {
-    return this.educationService.update(id, req.user.id, dto);
+    return this.educationService.update(id, req.user.userId, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, @Request() req) {
-    return this.educationService.remove(id, req.user.id);
+  remove(@Param('id') id: string, @Req() req: any) {
+    return this.educationService.remove(id, req.user.userId);
+  }
+  @Get('test')
+  test() {
+    return 'education working';
   }
 }

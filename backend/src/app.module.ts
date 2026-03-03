@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { dataSourceOptions } from './database/data-source/data-source';
+import { EducationModule } from './profiles/education/education.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { dataSourceOptions } from './database/data-source/data-source';
     AuthModule,
     UsersModule,
     ProfilesModule,
+    EducationModule,
   ],
 })
 export class AppModule {}

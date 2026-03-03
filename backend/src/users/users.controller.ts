@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import {
   Controller,
   Get,
@@ -9,10 +10,16 @@ import {
   Param,
   UseGuards,
   Req,
-  UploadedFile,
+  UploadedFiles,
   UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+
+import {
+  FileInterceptor,
+  FileFieldsInterceptor,
+} from '@nestjs/platform-express';
+
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwtGaurds/jwt-auth.gaurd';
 import { CompleteProfileDto } from './dto/completeProfile.dto';
@@ -32,9 +39,35 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('me/complete-profile')
-  completeProfile(@Req() req: any, @Body() dto: CompleteProfileDto) {
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'profilePicture', maxCount: 1 },
+        { name: 'coverPicture', maxCount: 1 },
+      ],
+      multerOptions,
+    ),
+  )
+  completeProfile(
+    @Req() req: any,
+    @Body() dto: CompleteProfileDto,
+    @UploadedFiles()
+    files: {
+      profilePicture?: Express.Multer.File[];
+      coverPicture?: Express.Multer.File[];
+    },
+  ) {
     const userId = req.user.sub;
-    return this.usersService.completeProfile(userId, dto);
+
+    const profilePicture = files?.profilePicture?.[0]?.filename;
+    const coverPicture = files?.coverPicture?.[0]?.filename;
+
+    return this.usersService.completeProfile(
+      userId,
+      dto,
+      profilePicture,
+      coverPicture,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
