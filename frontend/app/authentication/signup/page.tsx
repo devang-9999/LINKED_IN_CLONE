@@ -33,7 +33,7 @@ import { useForm } from "react-hook-form";
 import { useAppDispatch } from "@/utils/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { registerUser } from "@/redux/authentication/auth.slice";
+import { registerUser, socialLogin } from "@/redux/authentication/auth.slice";
 
 const RegisterUserSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -102,9 +102,8 @@ export default function LinkedInSignupPage() {
       const res = await signInWithPopup(auth, provider);
 
       const backendRes = await dispatch(
-        registerUser({
-          email: res.user.email,
-          password: "12345678",
+        socialLogin({
+          email: res.user.email
         }),
       ).unwrap();
 

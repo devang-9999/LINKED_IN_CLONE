@@ -1,10 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import {
   Injectable,
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { Experience } from './entities/experience.entity';
 import { CreateExperienceDto } from './dto/create-experience.dto';
 import { UpdateExperienceDto } from './dto/update-experience.dto';
@@ -15,29 +19,50 @@ export class ExperienceService {
   constructor(
     @InjectRepository(Experience)
     private readonly experienceRepo: Repository<Experience>,
+
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) {}
 
-  async create(user: User, dto: CreateExperienceDto) {
+  private async getUserId(authId: string): Promise<string> {
+    const user = await this.userRepo.findOne({
+      where: { id: authId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user.id;
+  }
+
+  async create(authId: string, dto: CreateExperienceDto) {
+    const userId = await this.getUserId(authId);
+
     // if (dto.currentlyWorking) {
     //   dto.endDate = null;
     // }
 
     const experience = this.experienceRepo.create({
       ...dto,
-      user,
+      user: { id: userId } as any,
     });
 
-    return this.experienceRepo.save(experience);
+    return await this.experienceRepo.save(experience);
   }
 
-  async findAllByUser(userId: string) {
-    return this.experienceRepo.find({
+  async findAllByUser(authId: string) {
+    const userId = await this.getUserId(authId);
+
+    return await this.experienceRepo.find({
       where: { user: { id: userId } },
       order: { startDate: 'DESC' },
     });
   }
 
-  async update(experienceId: string, userId: string, dto: UpdateExperienceDto) {
+  async update(experienceId: string, authId: string, dto: UpdateExperienceDto) {
+    const userId = await this.getUserId(authId);
+
     const experience = await this.experienceRepo.findOne({
       where: { id: experienceId },
       relations: ['user'],
@@ -48,7 +73,7 @@ export class ExperienceService {
     }
 
     if (experience.user.id !== userId) {
-      throw new ForbiddenException();
+      throw new ForbiddenException('You cannot update this experience');
     }
 
     // if (dto.currentlyWorking) {
@@ -57,10 +82,12 @@ export class ExperienceService {
 
     Object.assign(experience, dto);
 
-    return this.experienceRepo.save(experience);
+    return await this.experienceRepo.save(experience);
   }
 
-  async remove(experienceId: string, userId: string) {
+  async remove(experienceId: string, authId: string) {
+    const userId = await this.getUserId(authId);
+
     const experience = await this.experienceRepo.findOne({
       where: { id: experienceId },
       relations: ['user'],
@@ -71,7 +98,7 @@ export class ExperienceService {
     }
 
     if (experience.user.id !== userId) {
-      throw new ForbiddenException();
+      throw new ForbiddenException('You cannot delete this experience');
     }
 
     await this.experienceRepo.remove(experience);

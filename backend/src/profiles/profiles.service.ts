@@ -8,6 +8,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Education } from './education/entities/education.entity';
 import { Experience } from './experience/entities/experience.entity';
 import { UserSkill } from './skills/entities/user-skill.entity';
+import { Skill } from './skills/entities/skill.entity';
 
 export interface ProfileCompleteness {
   percentage: number;
@@ -18,7 +19,7 @@ export interface FullProfileResponse {
   user: User;
   educations: Education[];
   experiences: Experience[];
-  skills: any[];
+  skills: Skill[];
   completeness: ProfileCompleteness;
 }
 
@@ -40,6 +41,8 @@ export class ProfilesService {
       this.skillsService.getUserSkills(userId),
     ]);
 
+    const skills: Skill[] = userSkills.map((us) => us.skill);
+
     const completeness = this.calculateCompleteness({
       user,
       educations,
@@ -51,11 +54,10 @@ export class ProfilesService {
       user,
       educations,
       experiences,
-      skills: userSkills.map((s) => s.skill),
+      skills,
       completeness,
     };
   }
-
   async getMyProfile(userId: string): Promise<FullProfileResponse> {
     return this.getFullProfile(userId);
   }

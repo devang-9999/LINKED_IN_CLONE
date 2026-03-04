@@ -20,9 +20,9 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Post('/login/google')
-  signInWithGoogle(@Body() createUserDto: LoginDto) {
-    return this.authService.signInWithGoogle(createUserDto);
+  @Post('google')
+  googleLogin(@Body('email') email: string) {
+    return this.authService.signInWithGoogle(email);
   }
 
   @Get(':id')

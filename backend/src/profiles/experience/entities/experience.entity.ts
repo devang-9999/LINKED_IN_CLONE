@@ -33,7 +33,7 @@ export class Experience {
   @Column({ type: 'date', nullable: true })
   endDate: Date;
 
-  @Column({ default: false })
+  @Column({ default: false, nullable: true })
   currentlyWorking: boolean;
 
   @ManyToOne(() => User, (user) => user.experiences, { onDelete: 'CASCADE' })

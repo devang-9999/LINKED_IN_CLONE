@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use client"
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const findUser = async (credentials: any) => {
@@ -33,7 +34,7 @@ export const createUser = async (credentials: any) => {
 
 export const SocialSignIn = async (credentials: any) => {
   console.log(credentials, "api login");
-  const response = await fetch(`${API_BASE_URL}/auth/login/google`, {
+  const response = await fetch(`${API_BASE_URL}/auth/google`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

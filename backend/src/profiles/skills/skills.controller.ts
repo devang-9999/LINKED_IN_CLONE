@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import {
   Controller,
   Post,
@@ -10,18 +11,19 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+
 import { SkillsService } from './skills.service';
 import { AddSkillDto } from './dto/add-skill.dto';
 import { JwtAuthGuard } from 'src/auth/jwtGaurds/jwt-auth.gaurd';
 
-@Controller('profiles/skills')
+@Controller('skills')
 @UseGuards(JwtAuthGuard)
 export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
   @Post()
   addSkill(@Request() req, @Body() dto: AddSkillDto) {
-    return this.skillsService.addSkill(req.user, dto);
+    return this.skillsService.addSkill(req.user.id, dto);
   }
 
   @Get()

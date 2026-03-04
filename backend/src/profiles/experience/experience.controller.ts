@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import {
   Controller,
   Post,
@@ -11,19 +12,20 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+
 import { ExperienceService } from './experience.service';
 import { CreateExperienceDto } from './dto/create-experience.dto';
 import { UpdateExperienceDto } from './dto/update-experience.dto';
 import { JwtAuthGuard } from 'src/auth/jwtGaurds/jwt-auth.gaurd';
 
-@Controller('profiles/experience')
+@Controller('experience')
 @UseGuards(JwtAuthGuard)
 export class ExperienceController {
   constructor(private readonly experienceService: ExperienceService) {}
 
   @Post()
   create(@Request() req, @Body() dto: CreateExperienceDto) {
-    return this.experienceService.create(req.user, dto);
+    return this.experienceService.create(req.user.id, dto);
   }
 
   @Get()

@@ -1,8 +1,10 @@
-import { Button, Avatar } from "@mui/material";
+import { Button, Avatar, Typography, Box } from "@mui/material";
 
 interface ProfileHeaderProps {
   firstName?: string;
   lastName?: string;
+  headline?: string;
+  about?: string;
   profilePicture?: string;
   coverPicture?: string;
   onAddSection: () => void;
@@ -11,6 +13,8 @@ interface ProfileHeaderProps {
 export default function ProfileHeader({
   firstName,
   lastName,
+  headline,
+  about,
   profilePicture,
   coverPicture,
   onAddSection,
@@ -19,7 +23,7 @@ export default function ProfileHeader({
 
   return (
     <div className="profile-header">
-
+      {/* Cover */}
       <div
         className="cover"
         style={{
@@ -30,7 +34,7 @@ export default function ProfileHeader({
       />
 
       <div className="profile-info">
-
+        {/* Profile Avatar */}
         <Avatar
           src={profilePicture}
           sx={{
@@ -47,17 +51,44 @@ export default function ProfileHeader({
             : ""}
         </Avatar>
 
-        <h2>{fullName || "Your Name"}</h2>
+        {/* Name */}
+        <Typography variant="h5" fontWeight={600}>
+          {fullName || "Your Name"}
+        </Typography>
 
-        <div className="profile-actions">
+        {/* Headline */}
+        {headline && (
+          <Typography
+            variant="body1"
+            sx={{ color: "text.secondary", mt: 0.5 }}
+          >
+            {headline}
+          </Typography>
+        )}
+
+        {/* About */}
+        {about && (
+          <Typography
+            variant="body2"
+            sx={{
+              color: "text.secondary",
+              mt: 1,
+              maxWidth: 600,
+            }}
+          >
+            {about}
+          </Typography>
+        )}
+
+        {/* Buttons */}
+        <Box className="profile-actions" sx={{ mt: 2 }}>
           <Button variant="contained">Open to</Button>
 
           <Button variant="outlined" onClick={onAddSection}>
             Add profile section
           </Button>
-        </div>
-
+        </Box>
       </div>
     </div>
   );
-}
+}         

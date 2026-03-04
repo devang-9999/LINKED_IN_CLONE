@@ -98,8 +98,8 @@ export default function LinkedInSigninPage() {
 
       const userData = {
         email: user.email,
-        password:"12345678"
       };
+
       await dispatch(socialLogin(userData)).unwrap();
 
       showSnackbar("User Logged In Successfully");
@@ -110,116 +110,139 @@ export default function LinkedInSigninPage() {
   };
   return (
     <>
-    <Box className="signin-page-root">
-      <Box className="top-logo">
-        <Typography variant="h5" fontWeight="bold" className="signin-logo">
-          Linked
-          <span className="signin-logo-in">in</span>
-        </Typography>
-      </Box>
+      <Box className="signin-page-root">
+        <Box className="top-logo">
+          <Typography variant="h5" fontWeight="bold" className="signin-logo">
+            Linked
+            <span className="signin-logo-in">in</span>
+          </Typography>
+        </Box>
 
-      <Container maxWidth="sm" sx={{ width: "30rem" }}>
-        <Stack alignItems="center">
-          <Box className="signin-card">
-            <Stack spacing={2}>
-              <Typography
-                variant="h4"
-                className="signin-title"
-                textAlign="center"
-              >
-                Sign in
-              </Typography>
+        <Container maxWidth="sm" sx={{ width: "30rem" }}>
+          <Stack alignItems="center">
+            <Box className="signin-card">
+              <Stack spacing={2}>
+                <Typography
+                  variant="h4"
+                  className="signin-title"
+                  textAlign="center"
+                >
+                  Sign in
+                </Typography>
 
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<FcGoogle />}
-                className="social-btn"
-                onClick={() => handleGoogleLogin()}
-              >
-                Continue with Google
-              </Button>
-
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<MicrosoftIcon />}
-                className="social-btn"
-              >
-                Sign in with Microsoft
-              </Button>
-
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<FaApple />}
-                className="social-btn"
-              >
-                Sign in with Apple
-              </Button>
-
-              <Typography className="terms-text">
-                By clicking Continue, you agree to LinkedIn’s
-                <span className="blue-link"> User Agreement</span>,
-                <span className="blue-link"> Privacy Policy</span>, and
-                <span className="blue-link"> Cookie Policy</span>.
-              </Typography>
-
-              <Divider>or</Divider>
-
-              <form onSubmit={handleSubmit(handleLogin)}>
-              <Box>
-                <TextField
-                  label="Email or phone"
+                <Button
                   fullWidth
                   variant="outlined"
-                />
-
-                <Box className="password-wrapper" sx={{ marginTop: "1.5rem" }}>
-                  <FormControl fullWidth error={!!errors.password}>
-                    <InputLabel className="show-btn">Password</InputLabel>
-                    <OutlinedInput
-                      type={showPassword ? "text" : "password"}
-                      {...register("password")}
-                      endAdornment={
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowPassword((p) => !p)}
-                            edge="end"
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      }
-                    />
-                    <FormHelperText>{errors.password?.message}</FormHelperText>
-                  </FormControl>
-                </Box>
-
-                <Typography   sx={{ marginTop: "1.5rem" }} className="blue-link">Forgot password?</Typography>
-
-                <FormControlLabel
-                  sx={{ marginTop: "1rem" }}
-                  control={<Checkbox defaultChecked />}
-                  label="Keep me logged in"
-                />
-
-                <Button   sx={{ marginTop: "1rem" }} type="submit" fullWidth variant="contained" className="signin-btn">
-                  Sign in
+                  startIcon={<FcGoogle />}
+                  className="social-btn"
+                  onClick={() => handleGoogleLogin()}
+                >
+                  Continue with Google
                 </Button>
-              </Box>
-              </form>
-            </Stack>
-          </Box>
-        </Stack>
-      </Container>
-    </Box>
-    <Snackbar
+
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<MicrosoftIcon />}
+                  className="social-btn"
+                >
+                  Sign in with Microsoft
+                </Button>
+
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<FaApple />}
+                  className="social-btn"
+                >
+                  Sign in with Apple
+                </Button>
+
+                <Typography className="terms-text">
+                  By clicking Continue, you agree to LinkedIn’s
+                  <span className="blue-link"> User Agreement</span>,
+                  <span className="blue-link"> Privacy Policy</span>, and
+                  <span className="blue-link"> Cookie Policy</span>.
+                </Typography>
+
+                <Divider>or</Divider>
+
+                <form onSubmit={handleSubmit(handleLogin)}>
+                  <Box>
+                    <TextField
+                      label="Email or phone"
+                      fullWidth
+                      variant="outlined"
+                      {...register("email")}
+                      error={!!errors.email}
+                      helperText={errors.email?.message}
+                    />
+
+                    <Box
+                      className="password-wrapper"
+                      sx={{ marginTop: "1.5rem" }}
+                    >
+                      <FormControl fullWidth error={!!errors.password}>
+                        <InputLabel className="show-btn">Password</InputLabel>
+                        <OutlinedInput
+                          type={showPassword ? "text" : "password"}
+                          {...register("password")}
+                          endAdornment={
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => setShowPassword((p) => !p)}
+                                edge="end"
+                              >
+                                {showPassword ? (
+                                  <VisibilityOff />
+                                ) : (
+                                  <Visibility />
+                                )}
+                              </IconButton>
+                            </InputAdornment>
+                          }
+                        />
+                        <FormHelperText>
+                          {errors.password?.message}
+                        </FormHelperText>
+                      </FormControl>
+                    </Box>
+
+                    <Typography
+                      sx={{ marginTop: "1.5rem" }}
+                      className="blue-link"
+                    >
+                      Forgot password?
+                    </Typography>
+
+                    <FormControlLabel
+                      sx={{ marginTop: "1rem" }}
+                      control={<Checkbox defaultChecked />}
+                      label="Keep me logged in"
+                    />
+
+                    <Button
+                      sx={{ marginTop: "1rem" }}
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      className="signin-btn"
+                    >
+                      Sign in
+                    </Button>
+                  </Box>
+                </form>
+              </Stack>
+            </Box>
+          </Stack>
+        </Container>
+      </Box>
+      <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleClose}
         message={snackbar.message}
       />
-</>
+    </>
   );
 }

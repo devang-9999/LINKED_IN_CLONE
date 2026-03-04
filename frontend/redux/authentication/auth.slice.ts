@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use Client"
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
   createUser,
@@ -177,19 +178,15 @@ const authenticateSlice = createSlice({
         state.loading = false;
         state.currentUser = action.payload;
       })
-      .addCase(socialLogin.rejected, (state) => {
-        console.log("login rejected");
-        console.log("login google error", state.error);
+      .addCase(socialLogin.rejected, (state, action) => {
         state.loading = false;
-        state.error = "User Banned Contact Admin";
+        state.error = action.payload as string;
         state.currentUser = null;
-        console.log("login google error", state.error);
       })
       .addCase(fetchUsers.pending, (state) => {
         state.loading = true;
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
-        // console.log(action.payload.data);
         state.loading = false;
         state.users = action.payload.data;
         state.total = action.payload.total;

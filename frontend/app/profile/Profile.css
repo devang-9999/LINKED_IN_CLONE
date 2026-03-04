@@ -47,6 +47,7 @@
 
 .modal-wrapper {
   position: fixed;
+  height:auto;
   inset: 0;
   display: flex;
   justify-content: center;
@@ -55,7 +56,8 @@
 }
 
 .page-blur {
-  filter: blur(6px);
+  /* filter: blur(6px); */
+  background:transparent;
   pointer-events: none;  
   user-select: none;
   transition: filter 0.25s ease;

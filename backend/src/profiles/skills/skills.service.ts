@@ -3,8 +3,10 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { User } from 'src/users/entities/user.entity';
 import { Skill } from './entities/skill.entity';
 import { UserSkill } from './entities/user-skill.entity';
@@ -18,13 +20,30 @@ export class SkillsService {
 
     @InjectRepository(UserSkill)
     private readonly userSkillRepo: Repository<UserSkill>,
+
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) {}
 
   private normalizeSkillName(name: string) {
     return name.trim().toLowerCase();
   }
 
-  async addSkill(user: User, dto: AddSkillDto) {
+  private async getUserId(authId: string): Promise<string> {
+    const user = await this.userRepo.findOne({
+      where: { id: authId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user.id;
+  }
+
+  async addSkill(authId: string, dto: AddSkillDto) {
+    const userId = await this.getUserId(authId);
+
     const normalized = this.normalizeSkillName(dto.name);
 
     let skill = await this.skillRepo.findOne({
@@ -38,7 +57,7 @@ export class SkillsService {
 
     const existing = await this.userSkillRepo.findOne({
       where: {
-        user: { id: user.id },
+        user: { id: userId },
         skill: { id: skill.id },
       },
     });
@@ -48,14 +67,16 @@ export class SkillsService {
     }
 
     const userSkill = this.userSkillRepo.create({
-      user,
+      user: { id: userId },
       skill,
     });
 
     return this.userSkillRepo.save(userSkill);
   }
 
-  async getUserSkills(userId: string) {
+  async getUserSkills(authId: string) {
+    const userId = await this.getUserId(authId);
+
     return this.userSkillRepo.find({
       where: { user: { id: userId } },
       relations: ['skill'],
@@ -63,7 +84,9 @@ export class SkillsService {
     });
   }
 
-  async removeSkill(userId: string, skillId: string) {
+  async removeSkill(authId: string, skillId: string) {
+    const userId = await this.getUserId(authId);
+
     const userSkill = await this.userSkillRepo.findOne({
       where: {
         user: { id: userId },

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import axios from "axios";
 import {
   Box,
   TextField,
@@ -16,8 +17,18 @@ import {
 import "./Experience.css";
 
 const months = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const years = Array.from({ length: 60 }, (_, i) => 1970 + i);
@@ -32,7 +43,13 @@ const employmentTypes = [
   "Contract",
 ];
 
-export default function ExperienceForm() {
+interface ExperienceFormProps {
+  onClose?: () => void;
+}
+
+export default function ExperienceForm({ onClose }: ExperienceFormProps) {
+  const [loading, setLoading] = useState(false);
+
   const [form, setForm] = useState({
     title: "",
     employmentType: "",
@@ -48,16 +65,21 @@ export default function ExperienceForm() {
 
   const handleChange = (e: any) => {
     const { name, value, type, checked } = e.target;
-    setForm({
-      ...form,
+
+    setForm((prev) => ({
+      ...prev,
       [name]: type === "checkbox" ? checked : value,
-    });
+    }));
   };
 
   const formatDate = (month: string, year: string) => {
     if (!month || !year) return null;
+
     const monthIndex = months.indexOf(month);
-    return new Date(Number(year), monthIndex, 1);
+
+    const date = new Date(Number(year), monthIndex, 1);
+
+    return date.toISOString();
   };
 
   const handleSubmit = async () => {
@@ -74,7 +96,29 @@ export default function ExperienceForm() {
       currentlyWorking: form.currentlyWorking,
     };
 
-    console.log("Submitting:", payload);
+    try {
+      setLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      await axios.post("http://localhost:5000/experience", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("Experience added successfully");
+
+      if (onClose) {
+        onClose();
+      }
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Error adding experience", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -84,9 +128,7 @@ export default function ExperienceForm() {
           Add experience
         </Typography>
 
-        <Typography className="exp-required">
-          * Indicates required
-        </Typography>
+        <Typography className="exp-required">* Indicates required</Typography>
 
         <TextField
           label="Title*"
@@ -99,7 +141,7 @@ export default function ExperienceForm() {
         />
 
         <TextField
-          select
+          // select
           label="Employment type"
           name="employmentType"
           fullWidth
@@ -145,9 +187,7 @@ export default function ExperienceForm() {
           className="exp-checkbox"
         />
 
-        <Typography className="exp-section">
-          Start date*
-        </Typography>
+        <Typography className="exp-section">Start date*</Typography>
 
         <Box className="exp-row">
           <TextField
@@ -157,6 +197,11 @@ export default function ExperienceForm() {
             value={form.startMonth}
             onChange={handleChange}
             fullWidth
+             SelectProps={{
+              MenuProps: {
+                disablePortal: true,
+              },
+            }}
           >
             {months.map((month) => (
               <MenuItem key={month} value={month}>
@@ -172,6 +217,11 @@ export default function ExperienceForm() {
             value={form.startYear}
             onChange={handleChange}
             fullWidth
+             SelectProps={{
+              MenuProps: {
+                disablePortal: true,
+              },
+            }}
           >
             {years.map((year) => (
               <MenuItem key={year} value={year}>
@@ -183,9 +233,7 @@ export default function ExperienceForm() {
 
         {!form.currentlyWorking && (
           <>
-            <Typography className="exp-section">
-              End date*
-            </Typography>
+            <Typography className="exp-section">End date*</Typography>
 
             <Box className="exp-row">
               <TextField
@@ -195,6 +243,11 @@ export default function ExperienceForm() {
                 value={form.endMonth}
                 onChange={handleChange}
                 fullWidth
+                 SelectProps={{
+              MenuProps: {
+                disablePortal: true,
+              },
+            }}
               >
                 {months.map((month) => (
                   <MenuItem key={month} value={month}>
@@ -210,6 +263,11 @@ export default function ExperienceForm() {
                 value={form.endYear}
                 onChange={handleChange}
                 fullWidth
+                 SelectProps={{
+              MenuProps: {
+                disablePortal: true,
+              },
+            }}
               >
                 {years.map((year) => (
                   <MenuItem key={year} value={year}>
@@ -236,9 +294,9 @@ export default function ExperienceForm() {
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={!form.title || !form.companyName}
+            disabled={!form.title || !form.companyName || loading}
           >
-            Save
+            {loading ? "Saving..." : "Save"}
           </Button>
         </Box>
       </Paper>

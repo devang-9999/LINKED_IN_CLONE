@@ -120,33 +120,42 @@ export class AuthService {
     return await this.authRepository.remove(user);
   }
 
-  async signInWithGoogle(userGoogleDto: LoginDto) {
-    const { email, password } = userGoogleDto;
+  async signInWithGoogle(email: string): Promise<AuthResponseDto> {
     const existingUser = await this.authRepository.findOne({
       where: { email },
+      relations: ['user'],
     });
 
-    if (!existingUser) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      const newUser = this.userRepository.create({});
-      const savedUser = await this.userRepository.save(newUser);
-
-      const newAuth = this.authRepository.create({
-        email,
-        password: hashedPassword,
-        user: savedUser,
-      });
-      await this.authRepository.save(newAuth);
+    if (existingUser) {
       const token = this.jwtService.sign({
-        sub: savedUser.id,
-        email: email,
+        sub: existingUser.user.id,
+        email: existingUser.email,
       });
 
       return {
         accessToken: token,
-        userId: savedUser.id,
+        userId: existingUser.user.id,
       };
     }
+
+    const newUser = this.userRepository.create({});
+    const savedUser = await this.userRepository.save(newUser);
+
+    const newAuth = this.authRepository.create({
+      email,
+      user: savedUser,
+    });
+
+    await this.authRepository.save(newAuth);
+
+    const token = this.jwtService.sign({
+      sub: savedUser.id,
+      email,
+    });
+
+    return {
+      accessToken: token,
+      userId: savedUser.id,
+    };
   }
 }

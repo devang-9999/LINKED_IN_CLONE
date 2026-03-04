@@ -9,7 +9,6 @@ import { Repository } from 'typeorm';
 import { Education } from './entities/education.entity';
 import { CreateEducationDto } from './dto/create-education.dto';
 import { UpdateEducationDto } from './dto/update-education.dto';
-import { Auth } from 'src/auth/entities/auth.entity'; // adjust path if needed
 import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
@@ -18,26 +17,23 @@ export class EducationService {
     @InjectRepository(Education)
     private readonly educationRepo: Repository<Education>,
 
-    @InjectRepository(Auth)
-    private readonly authRepo: Repository<Auth>,
-
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
   ) {}
 
-  private async getUserIdFromAuth(userId: string): Promise<string> {
-    const auth = await this.userRepo.findOne({
+  private async getUserId(userId: string): Promise<string> {
+    const user = await this.userRepo.findOne({
       where: { id: userId },
     });
-    if (!auth) {
+    if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    return auth.id;
+    return user.id;
   }
 
   async create(authId: string, dto: CreateEducationDto) {
-    const userId = await this.getUserIdFromAuth(authId);
+    const userId = await this.getUserId(authId);
     const education = this.educationRepo.create({
       ...dto,
       user: { id: userId } as any,
@@ -47,7 +43,7 @@ export class EducationService {
   }
 
   async findAllByUser(authId: string) {
-    const userId = await this.getUserIdFromAuth(authId);
+    const userId = await this.getUserId(authId);
 
     return await this.educationRepo.find({
       where: { user: { id: userId } },
@@ -56,7 +52,7 @@ export class EducationService {
   }
 
   async update(educationId: string, authId: string, dto: UpdateEducationDto) {
-    const userId = await this.getUserIdFromAuth(authId);
+    const userId = await this.getUserId(authId);
 
     const education = await this.educationRepo.findOne({
       where: { id: educationId },
@@ -77,7 +73,7 @@ export class EducationService {
   }
 
   async remove(educationId: string, authId: string) {
-    const userId = await this.getUserIdFromAuth(authId);
+    const userId = await this.getUserId(authId);
 
     const education = await this.educationRepo.findOne({
       where: { id: educationId },

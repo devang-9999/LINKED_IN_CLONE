@@ -10,9 +10,14 @@ import {
   Chip,
   IconButton,
 } from "@mui/material";
+
 import CloseIcon from "@mui/icons-material/Close";
 
 import "./Skills.css";
+
+interface SkillsFormProps {
+  onClose?: () => void;
+}
 
 const suggestedSkills = [
   "Engineering",
@@ -27,24 +32,42 @@ const suggestedSkills = [
   "Presentations",
 ];
 
-export default function SkillsForm() {
+export default function SkillsForm({ onClose }: SkillsFormProps) {
   const [skill, setSkill] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!skill.trim()) return;
 
-    const payload = {
-      name: skill.trim(),
-    };
+    try {
+      setLoading(true);
 
-    console.log("Submitting:", payload);
+      const token = localStorage.getItem("token");
 
-    setSkill("");
+      await fetch("http://localhost:5000/profiles/skills", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: skill.trim() }),
+      });
+
+      setSkill("");
+
+      if (onClose) {
+        onClose();
+      }
+    } catch (error) {
+      console.error("Failed to add skill", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Box className="skill-overlay">
+    <Box className="skill-overlay" >
       <Paper className="skill-modal">
         <Typography variant="h6" className="skill-title">
           Add skill
@@ -95,9 +118,9 @@ export default function SkillsForm() {
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={!skill.trim()}
+            disabled={!skill.trim() || loading}
           >
-            Save
+            {loading ? "Saving..." : "Save"}
           </Button>
         </Box>
       </Paper>
