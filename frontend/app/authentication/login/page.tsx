@@ -83,7 +83,9 @@ export default function LinkedInSigninPage() {
         email: user.email,
         password: data.password,
       };
-      await dispatch(loginUser(userData)).unwrap();
+      const result = await dispatch(loginUser(userData)).unwrap();
+      localStorage.removeItem("token");
+      localStorage.setItem("token", result.access_token);
       showSnackbar("User Logged In Successfully");
       setTimeout(() => router.push("/feed"), 500);
     } catch (e) {
@@ -100,9 +102,11 @@ export default function LinkedInSigninPage() {
         email: user.email,
       };
 
-      await dispatch(socialLogin(userData)).unwrap();
-
+      const result = await dispatch(socialLogin(userData)).unwrap();
+      localStorage.removeItem("token");
+      localStorage.setItem("token", result.access_token);
       showSnackbar("User Logged In Successfully");
+
       setTimeout(() => router.push("/feed"), 500);
     } catch (error) {
       showSnackbar("Google Sign In Failed");

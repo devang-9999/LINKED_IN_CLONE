@@ -2,10 +2,10 @@
 
 import "./Feed.css"
 import { Box } from "@mui/material";
-import Navbar from "../../components/Navbar/Navbar"
-import LeftSidebar from "../../components/Feed/LeftSideBar/LeftSideBar";
-import FeedContainer from "../../components/Feed/FeedContainer/FeedContainer";
-import RightSidebar from "../../components/Feed/RightSideBar/RightSideBar";
+import Navbar from "../../../components/Navbar/Navbar"
+import LeftSidebar from "../../../components/Feed/LeftSideBar/LeftSideBar";
+import FeedContainer from "../../../components/Feed/FeedContainer/FeedContainer";
+import RightSidebar from "../../../components/Feed/RightSideBar/RightSideBar";
 
 export default function FeedLayout() {
   return (

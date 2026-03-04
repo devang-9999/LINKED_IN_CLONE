@@ -29,7 +29,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
 export default function LinkedInNavbar() {
-  const router = useRouter(); 
+  const router = useRouter();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
@@ -75,7 +75,7 @@ export default function LinkedInNavbar() {
           </div>
 
           <div className="li-nav-item">
-            <IconButton size="small" >
+            <IconButton size="small">
               <WorkIcon />
             </IconButton>
             <span>Jobs</span>
@@ -222,6 +222,7 @@ export default function LinkedInNavbar() {
             <MenuItem
               onClick={() => {
                 handleClose();
+                localStorage.removeItem("token");
                 router.push("/authentication/login");
               }}
             >

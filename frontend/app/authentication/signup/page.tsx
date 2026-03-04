@@ -83,11 +83,12 @@ export default function LinkedInSignupPage() {
         }),
       ).unwrap();
 
+      localStorage.removeItem("token");
       localStorage.setItem("token", backendRes.accessToken);
 
       showSnackbar("Registration successful");
 
-      setTimeout(() => router.push("profile/completeProfile"), 800);
+      setTimeout(() => router.push("/profile/completeProfile"), 800);
     } catch (error: any) {
       if (error.code === "auth/email-already-in-use") {
         showSnackbar("Email already registered");
@@ -103,15 +104,16 @@ export default function LinkedInSignupPage() {
 
       const backendRes = await dispatch(
         socialLogin({
-          email: res.user.email
+          email: res.user.email,
         }),
       ).unwrap();
 
+      localStorage.removeItem("token");
       localStorage.setItem("token", backendRes.accessToken);
 
       showSnackbar("Registration successful");
 
-      setTimeout(() => router.push("profile/completeProfile"), 800);
+      setTimeout(() => router.push("/profile/completeProfile"), 800);
     } catch {
       showSnackbar("Not able to sign in with Google");
     }

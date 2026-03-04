@@ -1,10 +1,10 @@
 "use client";
 
-import NetworkLeftSidebar from "../../components/MyNetworks/LeftSideBar/LeftSideBar";
+import NetworkLeftSidebar from "../../../components/MyNetworks/LeftSideBar/LeftSideBar";
 import "./Networks.css";
-import InviteConnectionsCard from "../../components/MyNetworks/InviteConnectionCard/Card";
+import InviteConnectionsCard from "../../../components/MyNetworks/InviteConnectionCard/Card";
 import LinkedInNavbar from "@/components/Navbar/Navbar";
-import SuggestionCard from "../../components/MyNetworks/SuggestionCard/SuggestionCard";
+import SuggestionCard from "../../../components/MyNetworks/SuggestionCard/SuggestionCard";
 
 export default function MyNetworkPage() {
   return (

@@ -4,8 +4,8 @@ import "./Notifications.css";
 import { Box, ToggleButton, ToggleButtonGroup, Paper } from "@mui/material";
 import { useState } from "react";
 
-import Navbar from "../../components/Navbar/Navbar";
-import LeftSidebar from "../../components/Feed/LeftSideBar/LeftSideBar";
+import Navbar from "../../../components/Navbar/Navbar";
+import LeftSidebar from "../../../components/Feed/LeftSideBar/LeftSideBar";
 
 export default function Notifications() {
   const [filter, setFilter] = useState("all");

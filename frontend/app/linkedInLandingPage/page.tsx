@@ -10,21 +10,30 @@ import SchoolIcon from "@mui/icons-material/SchoolOutlined";
 import WorkIcon from "@mui/icons-material/WorkOutline";
 import ExtensionIcon from "@mui/icons-material/ExtensionOutlined";
 import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
+import { useRouter } from "next/navigation";
 
 const HERO_IMAGE_PATH =
   "https://media.licdn.com/dms/image/v2/D5612AQGEVD1mv1e6RA/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1684954432323?e=2147483647&v=beta&t=8YTcE8rRXjCwqy4c_3_jPU1g-vfjY0Jhd2jr_03AjcY";
 
 export default function LinkedInLandingPage() {
+  const router = useRouter();
+
+  const goLogin = () => router.push("/authentication/login");
+  const goSignup = () => router.push("/authentication/signup");
+
+  const googleAuth = () => {
+    window.location.href = "http://localhost:5000/auth/google";
+  };
+
+  const microsoftAuth = () => {
+    window.location.href = "http://localhost:5000/auth/microsoft";
+  };
+
   return (
     <Box className="page-root">
       <Box className="header-root">
         <Container maxWidth="xl">
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            py={2}
-          >
+          <Stack direction="row" alignItems="center" justifyContent="space-between" py={2}>
             <Typography variant="h6" className="logo-text">
               Linked
               <Box component="span" className="logo-in">
@@ -80,10 +89,10 @@ export default function LinkedInLandingPage() {
               <Box className="nav-divider" />
 
               <Stack direction="row" spacing={2}>
-                <Button variant="outlined" className="btn-signin">
+                <Button variant="outlined" className="btn-signin" onClick={goLogin}>
                   Sign in
                 </Button>
-                <Button variant="contained" className="btn-join">
+                <Button variant="contained" className="btn-join" onClick={goSignup}>
                   Join now
                 </Button>
               </Stack>
@@ -93,100 +102,64 @@ export default function LinkedInLandingPage() {
       </Box>
 
       <Container>
-        <Grid
-          container
-          alignItems="center"
-          className="hero-root"
-          sx={{ width: "79vw", marginLeft: "-100px" }}
-        >
-          {/* item xs={12} md={6} */}
+        <Grid container alignItems="center" className="hero-root" sx={{ width: "79vw", marginLeft: "-100px" }}>
           <Grid>
             <Box className="hero-left">
-              <Typography
-                variant="h4"
-                className="hero-title"
-                sx={{ marginBottom: "3rem" }}
-              >
+              <Typography variant="h4" className="hero-title" sx={{ marginBottom: "3rem" }}>
                 Welcome to your professional community
               </Typography>
 
               <Stack spacing={2}>
-                <Button
-                  fullWidth
-                  startIcon={<GoogleIcon />}
-                  variant="contained"
-                  className="btn-primary"
-                >
+                <Button fullWidth startIcon={<GoogleIcon />} variant="contained" className="btn-primary" onClick={googleAuth}>
                   Continue with Google
                 </Button>
 
-                <Button
-                  fullWidth
-                  startIcon={<MicrosoftIcon />}
-                  variant="outlined"
-                  className="btn-outline"
-                >
+                <Button fullWidth startIcon={<MicrosoftIcon />} variant="outlined" className="btn-outline" onClick={microsoftAuth}>
                   Continue with Microsoft
                 </Button>
 
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  className="btn-outline"
-                  sx={{ marginBottom: "3rem" }}
-                >
+                <Button fullWidth variant="outlined" className="btn-outline" sx={{ marginBottom: "3rem" }} onClick={goLogin}>
                   Sign in with email
                 </Button>
 
                 <Typography className="terms-text">
-                  By clicking Continue to join or sign in, you agree to
-                  LinkedIn&apos;s User Agreement, Privacy Policy, and Cookie
-                  Policy.
+                  By clicking Continue to join or sign in, you agree to LinkedIn&apos;s User Agreement, Privacy Policy, and Cookie Policy.
                 </Typography>
 
                 <Typography className="join-text">
                   New to LinkedIn?
-                  <span className="join-link"> Join now</span>
+                  <span className="join-link" style={{ cursor: "pointer" }} onClick={goSignup}>
+                    {" "}Join now
+                  </span>
                 </Typography>
               </Stack>
             </Box>
           </Grid>
-          {/* item xs={12} md={6} */}
-          <Grid sx={{marginLeft:"4rem"}} >
+
+          <Grid sx={{ marginLeft: "4rem" }}>
             <Box className="hero-image-wrap">
-              <Box
-                component="img"
-                src={HERO_IMAGE_PATH}
-                alt="Hero"
-                className="hero-image"
-                sx={{width:"60rem"}}
-              />
+              <Box component="img" src={HERO_IMAGE_PATH} alt="Hero" className="hero-image" sx={{ width: "60rem" }} />
             </Box>
           </Grid>
         </Grid>
       </Container>
+
       <Box className="feature-section">
-        <Container sx={{justifyContent:"center", maxWidth:"70rem"}}>
+        <Container sx={{ justifyContent: "center", maxWidth: "70rem" }}>
           <Grid container alignItems="center" spacing={6} mb={10}>
-            <Grid sx={{marginLeft:"13rem"}}>
+            <Grid sx={{ marginLeft: "13rem" }}>
               <Typography variant="h6" className="feature-title">
                 Let the right people know you are open to work
               </Typography>
 
               <Typography className="feature-desc">
-                With the Open To Work feature, you can privately tell recruiters
-                or publicly share with the LinkedIn community that you are
-                looking for new job opportunities.
+                With the Open To Work feature, you can privately tell recruiters or publicly share with the LinkedIn community that you are looking for new job opportunities.
               </Typography>
             </Grid>
+
             <Grid>
               <Box className="feature-image-circle">
-                <Box
-                  component="img"
-                  src="/3.svg"
-                  alt="Feature"
-                  className="feature-circle-img"
-                />
+                <Box component="img" src="/3.svg" alt="Feature" className="feature-circle-img" />
               </Box>
             </Grid>
           </Grid>
@@ -194,12 +167,7 @@ export default function LinkedInLandingPage() {
           <Grid container spacing={6} justifyContent="center">
             <Grid textAlign="center">
               <Box className="feature-illustration">
-                <Box
-                  component="img"
-                  src="/2.svg"
-                  alt="Learn"
-                  className="feature-img"
-                />
+                <Box component="img" src="/2.svg" alt="Learn" className="feature-img" />
               </Box>
               <Typography className="feature-card-title">
                 Connect with people who can help
@@ -211,12 +179,7 @@ export default function LinkedInLandingPage() {
 
             <Grid textAlign="center">
               <Box className="feature-illustration">
-                <Box
-                  component="img"
-                  src="/1.svg"
-                  alt="Connect"
-                  className="feature-img"
-                />
+                <Box component="img" src="/1.svg" alt="Connect" className="feature-img" />
               </Box>
               <Typography className="feature-card-title">
                 Learn the skills you need to succeed
@@ -235,24 +198,19 @@ export default function LinkedInLandingPage() {
             Join your colleagues, classmates, and friends on LinkedIn
           </Typography>
 
-          <Button variant="contained" className="join-banner-btn">
+          <Button variant="contained" className="join-banner-btn" onClick={goSignup}>
             Get started
           </Button>
         </Container>
 
         <Box className="city-image-placeholder">
-          <Box
-            component="img"
-            src="/Footer.png"
-            alt="City"
-            className="city-banner-img"
-          />
+          <Box component="img" src="/Footer.png" alt="City" className="city-banner-img" />
         </Box>
       </Box>
 
       <Box className="footer-nav">
         <Container maxWidth="lg">
-          <Grid container spacing={4} sx={{marginLeft:"20rem"}}>
+          <Grid container spacing={4} sx={{ marginLeft: "20rem" }}>
             <Grid>
               <Typography className="footer-title">General</Typography>
               <Typography className="footer-link">Sign Up</Typography>
@@ -269,9 +227,7 @@ export default function LinkedInLandingPage() {
             </Grid>
 
             <Grid>
-              <Typography className="footer-title">
-                Business Solutions
-              </Typography>
+              <Typography className="footer-title">Business Solutions</Typography>
               <Typography className="footer-link">Talent</Typography>
               <Typography className="footer-link">Marketing</Typography>
               <Typography className="footer-link">Sales</Typography>
@@ -288,8 +244,7 @@ export default function LinkedInLandingPage() {
       </Box>
 
       <Box className="footer-bottom">
-        LinkedIn © 2026 · About · Accessibility · User Agreement · Privacy
-        Policy · Cookie Policy
+        LinkedIn © 2026 · About · Accessibility · User Agreement · Privacy Policy · Cookie Policy
       </Box>
     </Box>
   );
