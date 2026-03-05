@@ -20,7 +20,6 @@ export default function RightSidebar() {
   return (
     <Box className="right-sidebar">
 
-      {/* ================= LINKEDIN NEWS ================= */}
       <Paper elevation={1} className="news-card">
 
         <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -37,7 +36,6 @@ export default function RightSidebar() {
           Top stories
         </Typography>
 
-        {/* NEWS ITEMS */}
         {[
           {
             title: "Skills on the rise in India",
@@ -75,7 +73,6 @@ export default function RightSidebar() {
           <KeyboardArrowDownIcon fontSize="small" />
         </Stack>
 
-        {/* PUZZLE */}
         <Typography className="puzzle-title">
           Today’s puzzles
         </Typography>
@@ -100,7 +97,6 @@ export default function RightSidebar() {
       </Paper>
 
 
-      {/* ================= JOB BANNER ================= */}
       <Paper elevation={1} className="job-banner">
 
         <Typography className="job-banner-top">
@@ -125,7 +121,6 @@ export default function RightSidebar() {
       </Paper>
 
 
-      {/* ================= FOOTER ================= */}
       <Box className="right-footer">
 
         <Typography className="footer-links">

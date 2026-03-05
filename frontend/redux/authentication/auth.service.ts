@@ -42,7 +42,6 @@ export const SocialSignIn = async (credentials: any) => {
     body: JSON.stringify(credentials),
   });
   if (!response.ok) {
-    // console.log("error here", response.body);
     throw new Error(`Response status: ${response.status}`);
   }
   return response.json();

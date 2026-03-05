@@ -34,6 +34,7 @@ import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, provider } from "@/firebase/firebase";
 import { loginUser, socialLogin } from "@/redux/authentication/auth.slice";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { setCookie, getCookie } from "cookies-next";
 
 const LoginSchema = z.object({
   email: z.string().email("Email is invalid"),
@@ -84,8 +85,15 @@ export default function LinkedInSigninPage() {
         password: data.password,
       };
       const result = await dispatch(loginUser(userData)).unwrap();
+      console.log(result);
       localStorage.removeItem("token");
-      localStorage.setItem("token", result.access_token);
+      localStorage.setItem("token", result.accessToken);
+      setCookie("user_data", result.accessToken, {
+        maxAge: 60 * 60 * 24 * 1,
+        path: "/",
+      });
+      const tokenInCokkie = getCookie("user_data");
+      console.log(tokenInCokkie?.toString());
       showSnackbar("User Logged In Successfully");
       setTimeout(() => router.push("/feed"), 500);
     } catch (e) {
@@ -103,8 +111,15 @@ export default function LinkedInSigninPage() {
       };
 
       const result = await dispatch(socialLogin(userData)).unwrap();
+      console.log(result);
       localStorage.removeItem("token");
-      localStorage.setItem("token", result.access_token);
+      localStorage.setItem("token", result.accessToken);
+      setCookie("user_data", result.accessToken, {
+        maxAge: 60 * 60 * 24 * 1,
+        path: "/",
+      });
+      const tokenInCokkie = getCookie("user_data");
+      console.log(tokenInCokkie?.toString());
       showSnackbar("User Logged In Successfully");
 
       setTimeout(() => router.push("/feed"), 500);
@@ -236,6 +251,19 @@ export default function LinkedInSigninPage() {
                     </Button>
                   </Box>
                 </form>
+
+                <Typography className="signin-text">
+                  Don&apos;t have an Account?
+                  <span
+                    className="blue-link"
+                    onClick={() => {
+                      router.push("/authentication/signup");
+                    }}
+                  >
+                    {" "}
+                    Sign Up
+                  </span>
+                </Typography>
               </Stack>
             </Box>
           </Stack>

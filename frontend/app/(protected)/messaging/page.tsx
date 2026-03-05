@@ -1,18 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @next/next/no-img-element */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import "./Messaging.css";
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Tabs,
-  Tab,
-  IconButton,
-  Avatar,
-} from "@mui/material";
+
+import { Box, Typography, Button, IconButton, Avatar } from "@mui/material";
 
 import EmojiPicker from "emoji-picker-react";
 import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt";
@@ -23,46 +15,39 @@ import ImageIcon from "@mui/icons-material/Image";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 
 import LinkedInNavbar from "@/components/Navbar/Navbar";
-import { useEffect, useRef, useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/utils/hooks";
-import {
-  fetchCurrentUser,
-  fetchUsers,
-} from "@/redux/authentication/auth.slice";
+
+import { useEffect, useRef, useState, useMemo } from "react";
+import axios from "axios";
 import { getSocket } from "@/utils/socket";
-import {
-  addMessage,
-  clearMessages,
-  setMessages,
-} from "@/redux/messaging/messaging.slice";
 
 type User = {
   id: string;
-  username: string;
-  profilePic?: string | null;
-  isOnline?: boolean;
+  firstName?: string;
+  lastName?: string;
+  profilePicture?: string;
+  auth?: {
+    isActive?: boolean;
+  };
+};
+
+type Message = {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  message: string;
+  createdAt: string;
 };
 
 const getAvatarUrl = (file?: string | null) =>
   file ? `http://localhost:5000/uploads/${file}` : undefined;
 
-const stringToColor = (name: string) => {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return `hsl(${hash % 360}, 60%, 50%)`;
-};
-
-const MessagingLayout = () => {
-  const [tab, setTab] = useState(0);
-  const dispatch = useAppDispatch();
-
-  const currentUser = useAppSelector((state) => state.auth.currentUser);
-  const messages = useAppSelector((state) => state.messenger.messages);
+export default function MessagingLayout() {
+  /* SOCKET INSTANCE (STABLE) */
+  const socket = useMemo(() => getSocket(), []);
 
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [search, setSearch] = useState("");
@@ -71,62 +56,55 @@ const MessagingLayout = () => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const me = currentUser?.userid;
-  const targetUser = selectedUser?.id;
-  const roomId = me && targetUser ? [me, targetUser].sort().join("_") : null;
+  const me =
+    typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+
+  const roomId =
+    me && selectedUser ? [me, selectedUser.id].sort().join("_") : null;
 
   useEffect(() => {
-    if (!currentUser) return;
-
-    dispatch(fetchUsers({ page: 1, limit: 50 }))
-      .unwrap()
-      .then((res: any) => {
-        setUsers(
-          res.data
-            .filter((u: any) => u.userid !== currentUser.userid)
-            .map((u: any) => ({
-              id: u.userid,
-              username: u.username,
-              isOnline: u.isOnline,
-              profilePic: u.profilePic,
-            })),
-        );
-      });
-  }, [currentUser, dispatch]);
-
-  useEffect(() => {
-    if (currentUser?.userid) {
-      dispatch(fetchCurrentUser(currentUser.userid));
-    }
-  }, [currentUser?.userid, dispatch]);
+    axios.get("http://localhost:5000/users").then((res) => {
+      const filtered = res.data.filter((u: User) => u.id !== me);
+      setUsers(filtered);
+    });
+  }, [me]);
 
   useEffect(() => {
     if (!me) return;
 
-    const socket = getSocket();
-    if (!socket) return;
-
     socket.connect();
+
+    socket.on("connect", () => {
+      console.log("✅ Socket connected:", socket.id);
+    });
+
     socket.emit("onConnection", me);
 
+    socket.on("disconnect", () => {
+      console.log("❌ Socket disconnected");
+    });
+
     return () => {
+      socket.off("connect");
+      socket.off("disconnect");
       socket.disconnect();
     };
-  }, [me]);
+  }, [me, socket]);
 
   useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
-
     const online = ({ userid }: any) => {
       setUsers((prev) =>
-        prev.map((u) => (u.id === userid ? { ...u, isOnline: true } : u)),
+        prev.map((u) =>
+          u.id === userid ? { ...u, auth: { isActive: true } } : u,
+        ),
       );
     };
 
     const offline = ({ userid }: any) => {
       setUsers((prev) =>
-        prev.map((u) => (u.id === userid ? { ...u, isOnline: false } : u)),
+        prev.map((u) =>
+          u.id === userid ? { ...u, auth: { isActive: false } } : u,
+        ),
       );
     };
 
@@ -137,56 +115,66 @@ const MessagingLayout = () => {
       socket.off("userOnline", online);
       socket.off("userOffline", offline);
     };
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     if (!roomId) return;
 
-    const socket = getSocket();
-    if (!socket) return;
+    setMessages([]);
 
-    dispatch(clearMessages());
+    console.log("Joining room:", roomId);
+
     socket.emit("joinRoom", roomId);
     socket.emit("fetchMessages", roomId);
 
-    socket.on("getMessages", (msgs: any[]) => dispatch(setMessages(msgs)));
-    socket.on("newMessage", (msg: any) => dispatch(addMessage(msg)));
+    const handleMessages = (msgs: Message[]) => {
+      setMessages(msgs);
+    };
+
+    const handleNewMessage = (msg: Message) => {
+      setMessages((prev) => [...prev, msg]);
+    };
+
+    socket.on("getMessages", handleMessages);
+    socket.on("newMessage", handleNewMessage);
 
     return () => {
       socket.emit("leaveRoom", roomId);
-      socket.off("getMessages");
-      socket.off("newMessage");
+      socket.off("getMessages", handleMessages);
+      socket.off("newMessage", handleNewMessage);
     };
-  }, [roomId, dispatch]);
+  }, [roomId, socket]);
 
   useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
-
     const onTyping = () => {
       setOtherUserTyping(true);
+
       if (typingTimeout.current) clearTimeout(typingTimeout.current);
-      typingTimeout.current = setTimeout(() => setOtherUserTyping(false), 2000);
+
+      typingTimeout.current = setTimeout(() => {
+        setOtherUserTyping(false);
+      }, 2000);
     };
 
     socket.on("usertyping", onTyping);
+
     return () => {
       socket.off("usertyping", onTyping);
     };
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleSendMessage = () => {
-    if (!messageText.trim() || !roomId) return;
+    if (!messageText.trim() || !roomId || !selectedUser) return;
 
-    getSocket()?.emit("sendMessage", {
+    socket.emit("sendMessage", {
       roomId,
-      text: messageText,
       senderId: me,
-      receiverId: targetUser,
+      receiverId: selectedUser.id,
+      message: messageText,
     });
 
     setMessageText("");
@@ -198,11 +186,11 @@ const MessagingLayout = () => {
 
       <Box className="messaging-wrapper">
         <Box className="messaging-container">
+          {/* LEFT PANEL */}
+
           <Box className="conversation-panel">
             <Box className="conversation-header">
-              <Typography variant="subtitle1" fontWeight={600}>
-                Messaging
-              </Typography>
+              <Typography fontWeight={600}>Messaging</Typography>
 
               <Box>
                 <IconButton size="small">
@@ -217,32 +205,20 @@ const MessagingLayout = () => {
 
             <Box className="search-bar">
               <SearchIcon fontSize="small" />
+
               <input
-                placeholder="Search messages"
+                placeholder="Search users"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </Box>
 
-            <Tabs
-              value={tab}
-              onChange={(e, v) => setTab(v)}
-              variant="scrollable"
-              scrollButtons="auto"
-              className="conversation-tabs"
-            >
-              <Tab label="Focused" />
-              <Tab label="Jobs" />
-              <Tab label="Unread" />
-              <Tab label="Connections" />
-              <Tab label="InMail" />
-              <Tab label="Starred" />
-            </Tabs>
-
             <div className="user-list">
               {users
                 .filter((u) =>
-                  u.username.toLowerCase().includes(search.toLowerCase()),
+                  `${u.firstName ?? ""} ${u.lastName ?? ""}`
+                    .toLowerCase()
+                    .includes(search.toLowerCase()),
                 )
                 .map((user) => (
                   <div
@@ -253,54 +229,32 @@ const MessagingLayout = () => {
                     onClick={() => setSelectedUser(user)}
                   >
                     <div className="user-avatar">
-                      <Avatar
-                        src={getAvatarUrl(user.profilePic)}
-                        sx={{
-                          bgcolor: user.profilePic
-                            ? undefined
-                            : stringToColor(user.username),
-                        }}
-                      >
-                        {!user.profilePic && user.username[0].toUpperCase()}
-                      </Avatar>
+                      <Avatar src={getAvatarUrl(user.profilePicture)} />
 
-                      {user.isOnline && <span className="online-dot" />}
+                      {user.auth?.isActive && <span className="online-dot" />}
                     </div>
 
-                    <strong>{user.username}</strong>
+                    <strong>
+                      {user.firstName} {user.lastName}
+                    </strong>
                   </div>
                 ))}
             </div>
-
-            <Box className="empty-state">
-              <img src="/9.svg" alt="no messages" />
-              <Typography variant="h6">No messages yet</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Reach out and start a conversation to advance your career
-              </Typography>
-
-              <Button variant="outlined" sx={{ borderRadius: "24px", mt: 2 }}>
-                Send a message
-              </Button>
-            </Box>
           </Box>
+
+          {/* CHAT WINDOW */}
 
           <Box className="chat-window">
             <Box className="chat-header">
-              <Typography fontWeight={600}>New message</Typography>
-            </Box>
-
-            <Box className="chat-recipient">
-              <TextField
-                fullWidth
-                variant="standard"
-                placeholder="Type a name or multiple names"
-                InputProps={{ disableUnderline: true }}
-              />
+              <Typography fontWeight={600}>
+                {selectedUser
+                  ? `${selectedUser.firstName} ${selectedUser.lastName}`
+                  : "Select a conversation"}
+              </Typography>
             </Box>
 
             <div className="chat-messages">
-              {messages.map((msg: any) => {
+              {messages.map((msg) => {
                 const isMe = msg.senderId === me;
 
                 return (
@@ -312,6 +266,7 @@ const MessagingLayout = () => {
                       className={`message-bubble ${isMe ? "sent" : "received"}`}
                     >
                       {msg.message}
+
                       <div className="msg-time">
                         {new Date(msg.createdAt).toLocaleTimeString([], {
                           hour: "2-digit",
@@ -336,8 +291,8 @@ const MessagingLayout = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            <Box className="chat-input-area">
-              {selectedUser && (
+            {selectedUser && (
+              <Box className="chat-input-area">
                 <div className="chat-input">
                   <IconButton onClick={() => setShowEmojiPicker((p) => !p)}>
                     <SentimentSatisfiedAltIcon />
@@ -348,45 +303,52 @@ const MessagingLayout = () => {
                     placeholder="Type a message"
                     onChange={(e) => {
                       setMessageText(e.target.value);
-                      getSocket()?.emit("typing", { roomId, userid: me });
+
+                      if (roomId) {
+                        socket.emit("typing", {
+                          roomId,
+                          userid: me,
+                        });
+                      }
                     }}
                     onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                   />
 
-                </div>
-              )}
-
-              <Box className="chat-actions">
-                <Box className="left-actions">
-                  <IconButton size="small">
-                    <ImageIcon />
-                  </IconButton>
-
-                  <IconButton size="small">
-                    <AttachFileIcon />
-                  </IconButton>
-
-                  <Typography className="gif">GIF</Typography>
-
                   {showEmojiPicker && (
                     <div className="emoji-picker">
                       <EmojiPicker
-                        onEmojiClick={(e) => setMessageText((p) => p + e.emoji)}
+                        onEmojiClick={(emojiData) => {
+                          setMessageText((prev) => prev + emojiData.emoji);
+                        }}
                       />
                     </div>
                   )}
-                </Box>
+                </div>
 
-                <Button variant="contained" className="send-btn" onClick={handleSendMessage}>
-                  Send
-                </Button>
+                <Box className="chat-actions">
+                  <Box className="left-actions">
+                    <IconButton size="small">
+                      <ImageIcon />
+                    </IconButton>
+
+                    <IconButton size="small">
+                      <AttachFileIcon />
+                    </IconButton>
+                  </Box>
+
+                  <Button
+                    variant="contained"
+                    className="send-btn"
+                    onClick={handleSendMessage}
+                  >
+                    Send
+                  </Button>
+                </Box>
               </Box>
-            </Box>
+            )}
           </Box>
         </Box>
       </Box>
     </>
   );
-};
-
-export default MessagingLayout;
+}

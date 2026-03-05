@@ -75,7 +75,6 @@ const NetworkLeftSidebar = () => {
       </Paper>
 
 
-      {/* ================= FOOTER ================= */}
       <Box className="network-footer">
 
         <Stack className="footer-links">

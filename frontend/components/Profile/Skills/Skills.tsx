@@ -45,7 +45,7 @@ export default function SkillsForm({ onClose }: SkillsFormProps) {
 
       const token = localStorage.getItem("token");
 
-      await fetch("http://localhost:5000/profiles/skills", {
+      await fetch("http://localhost:5000/skills", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

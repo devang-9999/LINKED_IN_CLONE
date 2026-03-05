@@ -56,7 +56,7 @@ export default function EducationForm({ onClose, onSuccess }: Props) {
     if (!month || !year) return undefined;
     const monthIndex = months.indexOf(month);
     const date = new Date(Number(year), monthIndex, 1);
-    return date.toISOString().split("T")[0]; // yyyy-mm-dd
+    return date.toISOString().split("T")[0];
   };
 
   const handleSubmit = async () => {

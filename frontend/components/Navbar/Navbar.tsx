@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./Navbar.css";
 
 import { useRouter } from "next/navigation";
@@ -20,6 +20,13 @@ import {
   Typography,
 } from "@mui/material";
 
+interface UserProfile {
+  firstName?: string;
+  lastName?: string;
+  profilePicture?: string;
+  headline?: string;
+}
+
 import SearchIcon from "@mui/icons-material/Search";
 import HomeIcon from "@mui/icons-material/Home";
 import GroupIcon from "@mui/icons-material/Group";
@@ -27,14 +34,50 @@ import WorkIcon from "@mui/icons-material/Work";
 import ChatIcon from "@mui/icons-material/Chat";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import axios from "axios";
 
 export default function LinkedInNavbar() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
   const open = Boolean(anchorEl);
 
-  const handleOpen = (event) => {
-    setAnchorEl(event.currentTarget);
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        };
+
+        const [profileRes] = await Promise.all([
+          axios.get("http://localhost:5000/users/me", { headers }),
+        ]);
+
+        setProfile(profileRes.data);
+      } catch (error) {
+        console.error("Profile fetch failed", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token) {
+      fetchData();
+    }
+  }, [token]);
+
+  const backendUrl = "http://localhost:5000/uploads/";
+
+  if (loading) {
+    return <div className="profile-loading">Loading profile...</div>;
+  }
+
+  const handleOpen = (event: React.MouseEvent<HTMLDivElement>) => {
+    setAnchorEl(event.currentTarget as HTMLDivElement);
   };
 
   const handleClose = () => {
@@ -107,7 +150,14 @@ export default function LinkedInNavbar() {
             style={{ cursor: "pointer" }}
             onClick={handleOpen}
           >
-            <Avatar sx={{ width: 28, height: 28 }} />
+            <Avatar
+              sx={{ width: 28, height: 28 }}
+              src={
+                profile?.profilePicture
+                  ? backendUrl + profile.profilePicture
+                  : undefined
+              }
+            />
             <ArrowDropDownIcon
               sx={{
                 fontSize: 20,
@@ -126,13 +176,20 @@ export default function LinkedInNavbar() {
             PaperProps={{ className: "li-profile-menu" }}
           >
             <div className="li-menu-header">
-              <Avatar className="li-menu-avatar" />
+              <Avatar
+                className="li-menu-avatar"
+                src={
+                  profile?.profilePicture
+                    ? backendUrl + profile.profilePicture
+                    : undefined
+                }
+              />
               <div>
                 <Typography className="li-menu-name">
-                  Devang Tripathi
+                  {profile?.firstName} {profile?.lastName}
                 </Typography>
                 <Typography className="li-menu-headline">
-                  Student at CCET
+                  {profile?.headline}
                 </Typography>
               </div>
             </div>

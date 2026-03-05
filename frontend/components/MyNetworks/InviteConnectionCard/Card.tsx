@@ -18,7 +18,6 @@ const InviteConnectionsCard = () => {
 
       <Paper elevation={1} className="invite-card">
 
-        {/* LEFT CONTENT */}
         <Box className="invite-left">
           <Typography className="invite-title">
             Invite 5 of your colleagues to connect today
@@ -31,7 +30,6 @@ const InviteConnectionsCard = () => {
         </Box>
 
 
-        {/* RIGHT CONTENT */}
         <Stack className="invite-right">
 
           <Stack direction="row" spacing={1.5} className="progress-circles">

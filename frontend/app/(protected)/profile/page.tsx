@@ -12,6 +12,7 @@ import EducationForm from "@/components/Profile/Education/Education";
 import ExperienceForm from "@/components/Profile/Experience/Experience";
 import SkillsForm from "@/components/Profile/Skills/Skills";
 import LinkedInNavbar from "@/components/Navbar/Navbar";
+import CompleteProfilePage from "./completeProfile/page";
 
 interface UserProfile {
   firstName?: string;
@@ -24,7 +25,7 @@ interface UserProfile {
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
-
+  const [openUpdateProfile, setOpenUpdateProfile] = useState(false);
   const [education, setEducation] = useState<any[]>([]);
   const [experience, setExperience] = useState<any[]>([]);
   const [skills, setSkills] = useState<any[]>([]);
@@ -37,7 +38,11 @@ export default function ProfilePage() {
   const [openSkills, setOpenSkills] = useState(false);
 
   const isModalOpen =
-    openMenu || openEducation || openExperience || openSkills;
+    openMenu ||
+    openEducation ||
+    openExperience ||
+    openSkills ||
+    openUpdateProfile;
 
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -80,11 +85,9 @@ export default function ProfilePage() {
 
   return (
     <>
-      {/* Navbar hidden when modal open */}
       {!isModalOpen && <LinkedInNavbar />}
 
       <div className={`profile-container ${isModalOpen ? "page-blur" : ""}`}>
-        {/* PROFILE HEADER */}
         <ProfileHeader
           firstName={profile?.firstName}
           lastName={profile?.lastName}
@@ -103,7 +106,6 @@ export default function ProfilePage() {
           onAddSection={() => setOpenMenu(true)}
         />
 
-        {/* PROFILE SECTIONS */}
         <ProfileSections
           education={education}
           experience={experience}
@@ -114,7 +116,6 @@ export default function ProfilePage() {
         />
       </div>
 
-      {/* ADD PROFILE SECTION MENU */}
       {openMenu && (
         <div className="modal-wrapper" onClick={() => setOpenMenu(false)}>
           <div onClick={(e) => e.stopPropagation()}>
@@ -132,12 +133,15 @@ export default function ProfilePage() {
                 setOpenMenu(false);
                 setOpenSkills(true);
               }}
+              onUpdateProfile={() => {
+                setOpenMenu(false);
+                setOpenUpdateProfile(true);
+              }}
             />
           </div>
         </div>
       )}
 
-      {/* EDUCATION MODAL */}
       {openEducation && (
         <div className="modal-wrapper" onClick={() => setOpenEducation(false)}>
           <div onClick={(e) => e.stopPropagation()}>
@@ -146,7 +150,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* EXPERIENCE MODAL */}
       {openExperience && (
         <div className="modal-wrapper" onClick={() => setOpenExperience(false)}>
           <div onClick={(e) => e.stopPropagation()}>
@@ -155,11 +158,21 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* SKILLS MODAL */}
       {openSkills && (
         <div className="modal-wrapper" onClick={() => setOpenSkills(false)}>
           <div onClick={(e) => e.stopPropagation()}>
             <SkillsForm onClose={() => setOpenSkills(false)} />
+          </div>
+        </div>
+      )}
+
+      {openUpdateProfile && (
+        <div
+          className="modal-wrapper"
+          onClick={() => setOpenUpdateProfile(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <CompleteProfilePage onClose={() => setOpenUpdateProfile(false)} />
           </div>
         </div>
       )}

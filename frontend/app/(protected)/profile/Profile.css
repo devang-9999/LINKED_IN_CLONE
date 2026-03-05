@@ -44,21 +44,23 @@
   margin-bottom: 15px;
 }
 
-
 .modal-wrapper {
   position: fixed;
-  height:auto;
+  height: auto;
   inset: 0;
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+  animation: zoomIn 0.3s ease;
 }
 
 .page-blur {
-  /* filter: blur(6px); */
-  background:transparent;
-  pointer-events: none;  
+  background: transparent;
+  pointer-events: none;
   user-select: none;
   transition: filter 0.25s ease;
 }
@@ -83,4 +85,15 @@
 
 .menu-item:hover {
   color: #0a66c2;
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

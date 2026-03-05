@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import axios from "axios";
+
 import "./FeedContainer.css";
 
 import {
@@ -16,11 +19,38 @@ import ImageIcon from "@mui/icons-material/Image";
 import ArticleIcon from "@mui/icons-material/Article";
 import AddIcon from "@mui/icons-material/Add";
 
+interface User {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  headline?: string;
+  profilePicture?: string;
+}
+
 export default function FeedContainer() {
+
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/users");
+
+        setUsers(res.data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
   return (
     <Box>
 
-      {/* ================= START POST CARD ================= */}
       <Paper elevation={1} className="start-post-card">
 
         <Stack direction="row" spacing={1.5} alignItems="center">
@@ -58,79 +88,58 @@ export default function FeedContainer() {
 
       </Paper>
 
-
-      {/* ================= RECOMMENDED CARD ================= */}
       <Paper elevation={1} className="recommended-card">
 
         <Typography className="recommended-title">
           Recommended for you
         </Typography>
 
-        {/* Person 1 */}
-        <Stack direction="row" spacing={1.5} className="recommended-row">
-          <Avatar src="/profile.jpg" />
+        {loading && (
+          <Typography sx={{ mt: 2 }}>Loading users...</Typography>
+        )}
 
-          <Box className="recommended-info">
-            <Typography className="recommended-name">
-              Amina Habib
-            </Typography>
-            <Typography className="recommended-headline">
-              Entrepreneur | Women Impact Hub
-            </Typography>
-          </Box>
+        {!loading && users.length === 0 && (
+          <Typography sx={{ mt: 2 }}>No users found</Typography>
+        )}
 
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            className="follow-btn"
+        {users.map((user) => (
+          <Stack
+            key={user.id}
+            direction="row"
+            spacing={1.5}
+            alignItems="center"
+            className="recommended-row"
           >
-            Follow
-          </Button>
-        </Stack>
+            <Avatar
+              src={
+                user.profilePicture
+                  ? `http://localhost:5000/uploads/${user.profilePicture}`
+                  : "/profile.jpg"
+              }
+            />
 
-        {/* Person 2 */}
-        <Stack direction="row" spacing={1.5} className="recommended-row">
-          <Avatar src="/profile.jpg" />
+            <Box className="recommended-info">
 
-          <Box className="recommended-info">
-            <Typography className="recommended-name">
-              Valentina Sander
-            </Typography>
-            <Typography className="recommended-headline">
-              Lic. en Psicología | Recruiter
-            </Typography>
-          </Box>
+              <Typography className="recommended-name">
+                {user.firstName || ""} {user.lastName || ""}
+              </Typography>
 
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            className="follow-btn"
-          >
-            Follow
-          </Button>
-        </Stack>
+              <Typography className="recommended-headline">
+                {user.headline || "LinkedIn Member"}
+              </Typography>
 
-        {/* Person 3 */}
-        <Stack direction="row" spacing={1.5} className="recommended-row">
-          <Avatar src="/profile.jpg" />
+            </Box>
 
-          <Box className="recommended-info">
-            <Typography className="recommended-name">
-              Antonela Correa
-            </Typography>
-            <Typography className="recommended-headline">
-              HR at Bagley Argentina
-            </Typography>
-          </Box>
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              className="follow-btn"
+            >
+              Follow
+            </Button>
 
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            className="follow-btn"
-          >
-            Follow
-          </Button>
-        </Stack>
+          </Stack>
+        ))}
 
         <Typography className="show-more">
           Show more →

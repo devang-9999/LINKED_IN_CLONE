@@ -19,7 +19,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
-export default function CompleteProfilePage() {
+interface UpdateProfileProps {
+  onClose?: () => void;
+}
+
+export default function CompleteProfilePage({ onClose }: UpdateProfileProps) {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -97,7 +101,7 @@ export default function CompleteProfilePage() {
       );
 
       setSnackbar(true);
-
+    if (onClose) onClose();
       setTimeout(() => {
         router.push("/feed");
       }, 1000);

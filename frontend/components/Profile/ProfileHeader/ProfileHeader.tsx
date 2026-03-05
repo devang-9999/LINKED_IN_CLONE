@@ -23,7 +23,6 @@ export default function ProfileHeader({
 
   return (
     <div className="profile-header">
-      {/* Cover */}
       <div
         className="cover"
         style={{
@@ -34,7 +33,6 @@ export default function ProfileHeader({
       />
 
       <div className="profile-info">
-        {/* Profile Avatar */}
         <Avatar
           src={profilePicture}
           sx={{

@@ -34,6 +34,7 @@ import { useAppDispatch } from "@/utils/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { registerUser, socialLogin } from "@/redux/authentication/auth.slice";
+import { getCookie, setCookie } from "cookies-next";
 
 const RegisterUserSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -85,7 +86,12 @@ export default function LinkedInSignupPage() {
 
       localStorage.removeItem("token");
       localStorage.setItem("token", backendRes.accessToken);
-
+      setCookie("user_data", backendRes.accessToken, {
+        maxAge: 60 * 60 * 24 * 1,
+        path: "/",
+      });
+      const tokenInCokkie = getCookie("user_data");
+      console.log(tokenInCokkie?.toString());
       showSnackbar("Registration successful");
 
       setTimeout(() => router.push("/profile/completeProfile"), 800);
@@ -110,7 +116,12 @@ export default function LinkedInSignupPage() {
 
       localStorage.removeItem("token");
       localStorage.setItem("token", backendRes.accessToken);
-
+      setCookie("user_data", backendRes.accessToken, {
+        maxAge: 60 * 60 * 24 * 1,
+        path: "/",
+      });
+      const tokenInCokkie = getCookie("user_data");
+      console.log(tokenInCokkie?.toString());
       showSnackbar("Registration successful");
 
       setTimeout(() => router.push("/profile/completeProfile"), 800);
@@ -231,7 +242,15 @@ export default function LinkedInSignupPage() {
 
                 <Typography className="signin-text">
                   Already on LinkedIn?
-                  <span className="blue-link"> Sign in</span>
+                  <span
+                    className="blue-link"
+                    onClick={() => {
+                      router.push("/authentication/login");
+                    }}
+                  >
+                    {" "}
+                    Sign in
+                  </span>
                 </Typography>
               </Stack>
             </Box>

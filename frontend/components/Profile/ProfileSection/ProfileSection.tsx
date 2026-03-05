@@ -25,8 +25,6 @@ export default function ProfileSections({
   return (
     <Box sx={{ mt: 3, display: "flex", flexDirection: "column", gap: 2 }}>
 
-      {/* ================= EXPERIENCE ================= */}
-
       {experience.length === 0 ? (
         <Paper
           elevation={0}

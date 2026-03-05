@@ -2,35 +2,86 @@
 
 import "./LeftSideBar.css";
 
-import {
-  Box,
-  Paper,
-  Avatar,
-  Typography,
-} from "@mui/material";
+import { Box, Paper, Avatar, Typography } from "@mui/material";
 
+interface UserProfile {
+  firstName?: string;
+  lastName?: string;
+  profilePicture?: string;
+  coverPicture?: string;
+  headline?: string;
+}
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import GroupsIcon from "@mui/icons-material/Groups";
 import ArticleIcon from "@mui/icons-material/Article";
 import EventIcon from "@mui/icons-material/Event";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function LeftSidebar() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        };
+
+        const [profileRes] = await Promise.all([
+          axios.get("http://localhost:5000/users/me", { headers }),
+        ]);
+
+        setProfile(profileRes.data);
+      } catch (error) {
+        console.error("Profile fetch failed", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token) {
+      fetchData();
+    }
+  }, [token]);
+
+  const backendUrl = "http://localhost:5000/uploads/";
+
+  if (loading) {
+    return <div className="profile-loading">Loading profile...</div>;
+  }
   return (
     <Box className="left-sidebar">
-
       <Paper className="profile-card">
+        <div
+        className="profile-cover"
+        style={{
+          backgroundImage: profile?.coverPicture ? `url(${backendUrl + profile.coverPicture})` : undefined,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
 
-        <div className="profile-cover"></div>
-
-        <Avatar src="/profile.jpg" className="profile-avatar" />
+        <Avatar
+          src={
+            profile?.profilePicture
+              ? backendUrl + profile.profilePicture
+              : undefined
+          }
+          className="profile-avatar"
+        />
 
         <div className="profile-info">
           <Typography className="profile-name">
-            Devang Tripathi
+            {profile?.firstName} {profile?.lastName}
           </Typography>
 
           <Typography className="profile-headline">
-            Student at CCET
+            {" "}
+            {profile?.headline}
           </Typography>
 
           <Typography className="profile-location">
@@ -56,18 +107,12 @@ export default function LeftSidebar() {
       </Paper>
 
       <Paper className="analytics-card">
-        <Typography className="analytics-title">
-          View all analytics
-        </Typography>
+        <Typography className="analytics-title">View all analytics</Typography>
 
         <div className="analytics-row">
           <div>
-            <Typography className="analytics-main">
-              Connections
-            </Typography>
-            <Typography className="analytics-sub">
-              Grow your network
-            </Typography>
+            <Typography className="analytics-main">Connections</Typography>
+            <Typography className="analytics-sub">Grow your network</Typography>
           </div>
 
           <span className="analytics-number">0</span>
@@ -75,7 +120,6 @@ export default function LeftSidebar() {
       </Paper>
 
       <Paper className="shortcuts-card">
-
         <div className="shortcut-row">
           <BookmarkIcon />
           <span>Saved items</span>
@@ -95,9 +139,7 @@ export default function LeftSidebar() {
           <EventIcon />
           <span>Events</span>
         </div>
-
       </Paper>
-
     </Box>
   );
 }
