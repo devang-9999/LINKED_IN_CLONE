@@ -97,4 +97,9 @@ export class UsersController {
   getPublicProfile(@Param('id') id: string) {
     return this.usersService.getPublicProfile(id);
   }
+
+  @Get()
+  getAllUsers() {
+    return this.usersService.getAllUsers();
+  }
 }

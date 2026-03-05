@@ -1,19 +1,19 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateMessageDto {
-  @IsString({ message: 'room id must be a string' })
-  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   roomId: string;
 
-  @IsString({ message: 'sender id must be a string' })
-  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   senderId: string;
 
-  @IsString({ message: 'reciever id must be a string' })
-  @IsOptional()
-  recieverId: string;
+  @IsString()
+  @IsNotEmpty()
+  receiverId: string;
 
-  @IsString({ message: 'message must be a string' })
-  @IsNotEmpty({ message: 'message should not be empty' })
+  @IsString()
+  @IsNotEmpty()
   message: string;
 }

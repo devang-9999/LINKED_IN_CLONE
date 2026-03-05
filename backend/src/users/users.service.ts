@@ -102,4 +102,12 @@ export class UsersService {
 
     return this.usersRepository.save(user);
   }
+
+  async getAllUsers() {
+    const users = await this.usersRepository.find({
+      select: ['id', 'firstName', 'lastName', 'headline', 'profilePicture'],
+    });
+
+    return users;
+  }
 }

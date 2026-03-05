@@ -1,128 +1,143 @@
-// /* eslint-disable @typescript-eslint/no-unsafe-call */
-// /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-// /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {
+  ConnectedSocket,
+  MessageBody,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+} from '@nestjs/websockets';
 
-// import {
-//   ConnectedSocket,
-//   MessageBody,
-//   OnGatewayConnection,
-//   OnGatewayDisconnect,
-//   SubscribeMessage,
-//   WebSocketGateway,
-//   WebSocketServer,
-// } from '@nestjs/websockets';
-// import { Socket, Server } from 'socket.io';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { Repository } from 'typeorm';
-// import { Message } from './entities/message.entity';
-// import { User } from 'src/users/entities/user.entity';
+import { Server, Socket } from 'socket.io';
 
-// @WebSocketGateway({
-//   cors: { origin: 'http://localhost:3000' },
-// })
-// export class MessageGateway
-//   implements OnGatewayConnection, OnGatewayDisconnect
-// {
-//   constructor(
-//     @InjectRepository(User)
-//     private readonly userRepository: Repository<User>,
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
-//     @InjectRepository(Message)
-//     private readonly messageRepository: Repository<Message>,
-//   ) {}
+import { Message } from './entities/message.entity';
+import { User } from 'src/users/entities/user.entity';
+import { Auth } from 'src/auth/entities/auth.entity';
 
-//   @WebSocketServer()
-//   server: Server;
+import { TypingDto } from './dto/typing.dto';
+import { SendMessageDto } from './dto/send-message.dto';
 
-//   handleConnection(client: Socket) {
-//     console.log('Socket connected:', client.id);
-//   }
+interface AuthenticatedSocket extends Socket {
+  data: {
+    userid?: string;
+  };
+}
 
-//   async handleDisconnect(client: Socket) {
-//     console.log('Socket disconnected:', client.id);
+@WebSocketGateway({
+  cors: {
+    origin: 'http://localhost:3000',
+  },
+})
+export class MessageGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
 
-//     const userid = client.data.userid;
-//     if (!userid) return;
+    @InjectRepository(Auth)
+    private readonly authRepository: Repository<Auth>,
 
-//     const sockets = await this.server.in(userid).fetchSockets();
+    @InjectRepository(Message)
+    private readonly messageRepository: Repository<Message>,
+  ) {}
 
-//     if (sockets.length === 0) {
-//       await this.userRepository.update({ id: userid }, { isActive: false });
+  @WebSocketServer()
+  server: Server;
 
-//       this.server.emit('userOffline', { userid });
+  handleConnection(client: Socket) {
+    console.log('Socket connected:', client.id);
+  }
 
-//       console.log(`User ${userid} offline`);
-//     }
-//   }
+  async handleDisconnect(client: AuthenticatedSocket) {
+    const userid = client.data.userid;
 
-//   @SubscribeMessage('onConnection')
-//   async onConnection(
-//     @MessageBody() userid: string,
-//     @ConnectedSocket() client: Socket,
-//   ) {
-//     if (!userid) return;
-//     client.data.userid = userid;
+    if (!userid) return;
 
-//     await client.join(userid);
+    const sockets = await this.server.in(userid).fetchSockets();
 
-//     await this.userRepository.update({ id: userid }, { isActive: true });
+    if (sockets.length === 0) {
+      await this.authRepository.update(
+        { user: { id: userid } },
+        { isActive: false },
+      );
 
-//     this.server.emit('userOnline', { userid });
+      this.server.emit('userOffline', { userid });
+    }
+  }
 
-//     console.log(`User ${userid} joined personal room`);
-//   }
+  @SubscribeMessage('onConnection')
+  async onConnection(
+    @MessageBody() userid: string,
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    client.data.userid = userid;
 
-//   @SubscribeMessage('joinRoom')
-//   async joinRoom(
-//     @MessageBody() roomId: string,
-//     @ConnectedSocket() client: Socket,
-//   ) {
-//     await client.join(roomId);
-//     console.log(`Socket ${client.id} joined room ${roomId}`);
-//   }
+    await client.join(userid);
 
-//   @SubscribeMessage('leaveRoom')
-//   async leaveRoom(
-//     @MessageBody() roomId: string,
-//     @ConnectedSocket() client: Socket,
-//   ) {
-//     await client.leave(roomId);
-//     console.log(`Socket ${client.id} left room ${roomId}`);
-//   }
+    await this.authRepository.update(
+      { user: { id: userid } },
+      { isActive: true },
+    );
 
-//   @SubscribeMessage('typing')
-//   handleTyping(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-//     const { roomId, userid } = data;
+    this.server.emit('userOnline', { userid });
+  }
 
-//     client.to(roomId).emit('usertyping', { userid });
-//   }
+  @SubscribeMessage('joinRoom')
+  async joinRoom(
+    @MessageBody() roomId: string,
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    await client.join(roomId);
+  }
 
-//   @SubscribeMessage('fetchMessages')
-//   async fetchMessages(
-//     @MessageBody() roomId: string,
-//     @ConnectedSocket() client: Socket,
-//   ) {
-//     const messages = await this.messageRepository.find({
-//       where: { roomId },
-//       order: { createdAt: 'ASC' },
-//     });
+  @SubscribeMessage('leaveRoom')
+  async leaveRoom(
+    @MessageBody() roomId: string,
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    await client.leave(roomId);
+  }
 
-//     client.emit('getMessages', messages);
-//   }
+  @SubscribeMessage('typing')
+  handleTyping(
+    @MessageBody() data: TypingDto,
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    const { roomId, userid } = data;
 
-//   @SubscribeMessage('sendMessage')
-//   async sendMessage(@MessageBody() data: any) {
-//     const { roomId, text, senderId, receiverId } = data;
+    client.to(roomId).emit('usertyping', { userid });
+  }
 
-//     if (!roomId || !senderId || !receiverId) return;
+  @SubscribeMessage('fetchMessages')
+  async fetchMessages(
+    @MessageBody() roomId: string,
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    const messages = await this.messageRepository.find({
+      where: { roomId },
+      order: { createdAt: 'ASC' },
+    });
 
-//     const message = await this.messageRepository.save({
-//       roomId,
-//       senderId,
-//       receiverId,
-//       message: text,
-//     });
+    client.emit('getMessages', messages);
+  }
 
-//     this.server.to(roomId).emit('newMessage', message);
-//   }
-// }
+  @SubscribeMessage('sendMessage')
+  async sendMessage(@MessageBody() data: SendMessageDto) {
+    const { roomId, senderId, receiverId, text } = data;
+
+    const message = this.messageRepository.create({
+      roomId,
+      senderId,
+      receiverId,
+      message: text,
+    });
+
+    const savedMessage = await this.messageRepository.save(message);
+
+    this.server.to(roomId).emit('newMessage', savedMessage);
+  }
+}

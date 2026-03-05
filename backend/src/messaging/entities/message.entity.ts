@@ -1,14 +1,14 @@
 import {
   Entity,
-  Column,
   PrimaryGeneratedColumn,
+  Column,
   CreateDateColumn,
 } from 'typeorm';
 
-@Entity('Messages')
+@Entity('messages')
 export class Message {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   roomId: string;
@@ -19,12 +19,9 @@ export class Message {
   @Column()
   receiverId: string;
 
-  @Column({ type: 'varchar', length: 500 })
+  @Column('text')
   message: string;
 
-  @CreateDateColumn({
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP(6)',
-  })
+  @CreateDateColumn()
   createdAt: Date;
 }
