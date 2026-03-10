@@ -34,7 +34,9 @@ import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, provider } from "@/firebase/firebase";
 import { loginUser, socialLogin } from "@/redux/authentication/auth.slice";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { setCookie, getCookie } from "cookies-next";
+
+// OLD COOKIE IMPORTS
+// import { setCookie, getCookie } from "cookies-next";
 
 const LoginSchema = z.object({
   email: z.string().email("Email is invalid"),
@@ -77,6 +79,7 @@ export default function LinkedInSigninPage() {
   const handleLogin = async (data: LoginFormData) => {
     try {
       const { email, password } = data;
+
       const res = await signInWithEmailAndPassword(auth, email, password);
       const user = res.user;
 
@@ -84,17 +87,26 @@ export default function LinkedInSigninPage() {
         email: user.email,
         password: data.password,
       };
+
       const result = await dispatch(loginUser(userData)).unwrap();
       console.log(result);
+
+      // OLD TOKEN STORAGE (REMOVED)
+      /*
       localStorage.removeItem("token");
       localStorage.setItem("token", result.accessToken);
+
       setCookie("user_data", result.accessToken, {
         maxAge: 60 * 60 * 24 * 1,
         path: "/",
       });
+
       const tokenInCokkie = getCookie("user_data");
       console.log(tokenInCokkie?.toString());
+      */
+
       showSnackbar("User Logged In Successfully");
+
       setTimeout(() => router.push("/feed"), 500);
     } catch (e) {
       showSnackbar("Invalid Username Or Password");
@@ -112,14 +124,21 @@ export default function LinkedInSigninPage() {
 
       const result = await dispatch(socialLogin(userData)).unwrap();
       console.log(result);
+
+      // OLD TOKEN STORAGE (REMOVED)
+      /*
       localStorage.removeItem("token");
       localStorage.setItem("token", result.accessToken);
+
       setCookie("user_data", result.accessToken, {
         maxAge: 60 * 60 * 24 * 1,
         path: "/",
       });
+
       const tokenInCokkie = getCookie("user_data");
       console.log(tokenInCokkie?.toString());
+      */
+
       showSnackbar("User Logged In Successfully");
 
       setTimeout(() => router.push("/feed"), 500);
@@ -127,6 +146,7 @@ export default function LinkedInSigninPage() {
       showSnackbar("Google Sign In Failed");
     }
   };
+
   return (
     <>
       <Box className="signin-page-root">
@@ -197,12 +217,9 @@ export default function LinkedInSigninPage() {
                       helperText={errors.email?.message}
                     />
 
-                    <Box
-                      className="password-wrapper"
-                      sx={{ marginTop: "1.5rem" }}
-                    >
+                    <Box sx={{ marginTop: "1.5rem" }}>
                       <FormControl fullWidth error={!!errors.password}>
-                        <InputLabel className="show-btn">Password</InputLabel>
+                        <InputLabel>Password</InputLabel>
                         <OutlinedInput
                           type={showPassword ? "text" : "password"}
                           {...register("password")}
@@ -269,6 +286,7 @@ export default function LinkedInSigninPage() {
           </Stack>
         </Container>
       </Box>
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

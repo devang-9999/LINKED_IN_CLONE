@@ -3,6 +3,8 @@
 
 import { useState } from "react";
 import axios from "axios";
+import { getCookie } from "cookies-next"; // ✅ NEW (added)
+
 import {
   Box,
   TextField,
@@ -82,44 +84,44 @@ export default function ExperienceForm({ onClose }: ExperienceFormProps) {
     return date.toISOString();
   };
 
-  const handleSubmit = async () => {
-    const payload = {
-      title: form.title,
-      employmentType: form.employmentType || undefined,
-      companyName: form.companyName,
-      location: form.location || undefined,
-      description: form.description || undefined,
-      startDate: formatDate(form.startMonth, form.startYear),
-      endDate: form.currentlyWorking
-        ? null
-        : formatDate(form.endMonth, form.endYear),
-      currentlyWorking: form.currentlyWorking,
-    };
-
-    try {
-      setLoading(true);
-
-      const token = localStorage.getItem("token");
-
-      await axios.post("http://localhost:5000/experience", payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("Experience added successfully");
-
-      if (onClose) {
-        onClose();
-      }
-
-      window.location.reload();
-    } catch (error) {
-      console.error("Error adding experience", error);
-    } finally {
-      setLoading(false);
-    }
+ const handleSubmit = async () => {
+  const payload = {
+    title: form.title,
+    employmentType: form.employmentType || undefined,
+    companyName: form.companyName,
+    location: form.location || undefined,
+    description: form.description || undefined,
+    startDate: formatDate(form.startMonth, form.startYear),
+    endDate: form.currentlyWorking
+      ? null
+      : formatDate(form.endMonth, form.endYear),
+    currentlyWorking: form.currentlyWorking,
   };
+
+  try {
+    setLoading(true);
+
+    await axios.post(
+      "http://localhost:5000/experience",
+      payload,
+      {
+        withCredentials: true,
+      }
+    );
+
+    console.log("Experience added successfully");
+
+    if (onClose) {
+      onClose();
+    }
+
+    window.location.reload();
+  } catch (error) {
+    console.error("Error adding experience", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Box className="exp-overlay">
@@ -128,7 +130,9 @@ export default function ExperienceForm({ onClose }: ExperienceFormProps) {
           Add experience
         </Typography>
 
-        <Typography className="exp-required">* Indicates required</Typography>
+        <Typography className="exp-required">
+          * Indicates required
+        </Typography>
 
         <TextField
           label="Title*"
@@ -187,7 +191,9 @@ export default function ExperienceForm({ onClose }: ExperienceFormProps) {
           className="exp-checkbox"
         />
 
-        <Typography className="exp-section">Start date*</Typography>
+        <Typography className="exp-section">
+          Start date*
+        </Typography>
 
         <Box className="exp-row">
           <TextField
@@ -197,7 +203,7 @@ export default function ExperienceForm({ onClose }: ExperienceFormProps) {
             value={form.startMonth}
             onChange={handleChange}
             fullWidth
-             SelectProps={{
+            SelectProps={{
               MenuProps: {
                 disablePortal: true,
               },
@@ -217,7 +223,7 @@ export default function ExperienceForm({ onClose }: ExperienceFormProps) {
             value={form.startYear}
             onChange={handleChange}
             fullWidth
-             SelectProps={{
+            SelectProps={{
               MenuProps: {
                 disablePortal: true,
               },
@@ -233,7 +239,9 @@ export default function ExperienceForm({ onClose }: ExperienceFormProps) {
 
         {!form.currentlyWorking && (
           <>
-            <Typography className="exp-section">End date*</Typography>
+            <Typography className="exp-section">
+              End date*
+            </Typography>
 
             <Box className="exp-row">
               <TextField
@@ -243,11 +251,11 @@ export default function ExperienceForm({ onClose }: ExperienceFormProps) {
                 value={form.endMonth}
                 onChange={handleChange}
                 fullWidth
-                 SelectProps={{
-              MenuProps: {
-                disablePortal: true,
-              },
-            }}
+                SelectProps={{
+                  MenuProps: {
+                    disablePortal: true,
+                  },
+                }}
               >
                 {months.map((month) => (
                   <MenuItem key={month} value={month}>
@@ -263,11 +271,11 @@ export default function ExperienceForm({ onClose }: ExperienceFormProps) {
                 value={form.endYear}
                 onChange={handleChange}
                 fullWidth
-                 SelectProps={{
-              MenuProps: {
-                disablePortal: true,
-              },
-            }}
+                SelectProps={{
+                  MenuProps: {
+                    disablePortal: true,
+                  },
+                }}
               >
                 {years.map((year) => (
                   <MenuItem key={year} value={year}>

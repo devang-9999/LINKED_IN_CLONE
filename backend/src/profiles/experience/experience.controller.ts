@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 import {
   Controller,
   Post,
@@ -25,12 +24,14 @@ export class ExperienceController {
 
   @Post()
   create(@Request() req, @Body() dto: CreateExperienceDto) {
-    return this.experienceService.create(req.user.id, dto);
+    // return this.experienceService.create(req.user.id, dto);
+    return this.experienceService.create(req.user.userId, dto);
   }
 
   @Get()
   findMyExperience(@Request() req) {
-    return this.experienceService.findAllByUser(req.user.id);
+    // return this.experienceService.findAllByUser(req.user.id);
+    return this.experienceService.findAllByUser(req.user.userId);
   }
 
   @Patch(':id')
@@ -39,11 +40,13 @@ export class ExperienceController {
     @Request() req,
     @Body() dto: UpdateExperienceDto,
   ) {
-    return this.experienceService.update(id, req.user.id, dto);
+    // return this.experienceService.update(id, req.user.id, dto);
+    return this.experienceService.update(id, req.user.userId, dto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req) {
-    return this.experienceService.remove(id, req.user.id);
+    // return this.experienceService.remove(id, req.user.id);
+    return this.experienceService.remove(id, req.user.userId);
   }
 }

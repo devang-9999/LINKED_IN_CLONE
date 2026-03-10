@@ -6,7 +6,8 @@ export const getSocket = () => {
   if (!socket) {
     socket = io("http://localhost:5000", {
       autoConnect: false,
-      transports: ["websocket"],
+      withCredentials: true,
+      transports: ["websocket", "polling"],
     });
 
     socket.on("connect", () => {

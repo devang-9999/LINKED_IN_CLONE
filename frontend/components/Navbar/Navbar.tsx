@@ -20,13 +20,6 @@ import {
   Typography,
 } from "@mui/material";
 
-interface UserProfile {
-  firstName?: string;
-  lastName?: string;
-  profilePicture?: string;
-  headline?: string;
-}
-
 import SearchIcon from "@mui/icons-material/Search";
 import HomeIcon from "@mui/icons-material/Home";
 import GroupIcon from "@mui/icons-material/Group";
@@ -34,30 +27,51 @@ import WorkIcon from "@mui/icons-material/Work";
 import ChatIcon from "@mui/icons-material/Chat";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+
 import axios from "axios";
+
+interface UserProfile {
+  firstName?: string;
+  lastName?: string;
+  profilePicture?: string;
+  headline?: string;
+}
 
 export default function LinkedInNavbar() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
   const router = useRouter();
+
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
   const open = Boolean(anchorEl);
 
+  /*
+  OLD TOKEN METHOD
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  */
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+
+        /*
+        OLD HEADER AUTH METHOD
         const headers = {
           Authorization: `Bearer ${token}`,
         };
+        */
 
-        const [profileRes] = await Promise.all([
-          axios.get("http://localhost:5000/users/me", { headers }),
-        ]);
+        const profileRes = await axios.get(
+          "http://localhost:5000/users/me",
+          {
+            withCredentials: true,
+          }
+        );
 
         setProfile(profileRes.data);
+
       } catch (error) {
         console.error("Profile fetch failed", error);
       } finally {
@@ -65,10 +79,16 @@ export default function LinkedInNavbar() {
       }
     };
 
+    fetchData();
+
+    /*
+    OLD CONDITIONAL FETCH
     if (token) {
       fetchData();
     }
-  }, [token]);
+    */
+
+  }, []);
 
   const backendUrl = "http://localhost:5000/uploads/";
 
@@ -84,10 +104,35 @@ export default function LinkedInNavbar() {
     setAnchorEl(null);
   };
 
+  const handleLogout = async () => {
+    try {
+
+      /*
+      OLD LOGOUT METHOD
+      localStorage.removeItem("token");
+      */
+
+      await axios.post(
+        "http://localhost:5000/auth/logout",
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+
+      router.push("/authentication/login");
+
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
   return (
     <AppBar position="sticky" elevation={0} className="li-navbar">
       <Toolbar className="li-toolbar">
+
         <Box className="li-left">
+
           <div
             className="li-logo"
             style={{ cursor: "pointer" }}
@@ -100,9 +145,11 @@ export default function LinkedInNavbar() {
             <SearchIcon className="li-search-icon" />
             <InputBase placeholder="Search" className="li-search-input" />
           </div>
+
         </Box>
 
         <Box className="li-right">
+
           <div className="li-nav-item">
             <IconButton size="small" onClick={() => router.push("/feed")}>
               <HomeIcon />
@@ -175,7 +222,9 @@ export default function LinkedInNavbar() {
             transformOrigin={{ vertical: "top", horizontal: "right" }}
             PaperProps={{ className: "li-profile-menu" }}
           >
+
             <div className="li-menu-header">
+
               <Avatar
                 className="li-menu-avatar"
                 src={
@@ -184,14 +233,17 @@ export default function LinkedInNavbar() {
                     : undefined
                 }
               />
+
               <div>
                 <Typography className="li-menu-name">
                   {profile?.firstName} {profile?.lastName}
                 </Typography>
+
                 <Typography className="li-menu-headline">
                   {profile?.headline}
                 </Typography>
               </div>
+
             </div>
 
             <div className="li-view-profile-wrapper">
@@ -211,7 +263,10 @@ export default function LinkedInNavbar() {
             <Divider />
 
             <div className="li-menu-section">
-              <div className="li-section-title">Account</div>
+
+              <div className="li-section-title">
+                Account
+              </div>
 
               <MenuItem
                 onClick={() => {
@@ -248,12 +303,16 @@ export default function LinkedInNavbar() {
               >
                 Language
               </MenuItem>
+
             </div>
 
             <Divider />
 
             <div className="li-menu-section">
-              <div className="li-section-title">Manage</div>
+
+              <div className="li-section-title">
+                Manage
+              </div>
 
               <MenuItem
                 onClick={() => {
@@ -272,6 +331,7 @@ export default function LinkedInNavbar() {
               >
                 Job Posting Account
               </MenuItem>
+
             </div>
 
             <Divider />
@@ -279,13 +339,14 @@ export default function LinkedInNavbar() {
             <MenuItem
               onClick={() => {
                 handleClose();
-                localStorage.removeItem("token");
-                router.push("/authentication/login");
+                handleLogout();
               }}
             >
               Sign out
             </MenuItem>
+
           </Menu>
+
         </Box>
       </Toolbar>
     </AppBar>

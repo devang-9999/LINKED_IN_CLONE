@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
@@ -34,7 +35,7 @@ type Message = {
   id: string;
   senderId: string;
   receiverId: string;
-  message: string;
+  message: string; // ✅ FIXED
   createdAt: string;
 };
 
@@ -42,7 +43,6 @@ const getAvatarUrl = (file?: string | null) =>
   file ? `http://localhost:5000/uploads/${file}` : undefined;
 
 export default function MessagingLayout() {
-  /* SOCKET INSTANCE (STABLE) */
   const socket = useMemo(() => getSocket(), []);
 
   const [users, setUsers] = useState<User[]>([]);
@@ -52,23 +52,43 @@ export default function MessagingLayout() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [search, setSearch] = useState("");
   const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const [me, setMe] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const me =
-    typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-
   const roomId =
     me && selectedUser ? [me, selectedUser.id].sort().join("_") : null;
 
+  /* FETCH LOGGED USER */
   useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/users/me", {
+          credentials: "include",
+        });
+
+        const data = await res.json();
+        setMe(data.id);
+      } catch (err) {
+        console.error("Not authenticated");
+      }
+    };
+
+    fetchMe();
+  }, []);
+
+  /* FETCH USERS */
+  useEffect(() => {
+    if (!me) return;
+
     axios.get("http://localhost:5000/users").then((res) => {
       const filtered = res.data.filter((u: User) => u.id !== me);
       setUsers(filtered);
     });
   }, [me]);
 
+  /* SOCKET CONNECTION */
   useEffect(() => {
     if (!me) return;
 
@@ -77,8 +97,6 @@ export default function MessagingLayout() {
     socket.on("connect", () => {
       console.log("✅ Socket connected:", socket.id);
     });
-
-    socket.emit("onConnection", me);
 
     socket.on("disconnect", () => {
       console.log("❌ Socket disconnected");
@@ -91,20 +109,21 @@ export default function MessagingLayout() {
     };
   }, [me, socket]);
 
+  /* ONLINE STATUS */
   useEffect(() => {
     const online = ({ userid }: any) => {
       setUsers((prev) =>
         prev.map((u) =>
-          u.id === userid ? { ...u, auth: { isActive: true } } : u,
-        ),
+          u.id === userid ? { ...u, auth: { isActive: true } } : u
+        )
       );
     };
 
     const offline = ({ userid }: any) => {
       setUsers((prev) =>
         prev.map((u) =>
-          u.id === userid ? { ...u, auth: { isActive: false } } : u,
-        ),
+          u.id === userid ? { ...u, auth: { isActive: false } } : u
+        )
       );
     };
 
@@ -117,12 +136,11 @@ export default function MessagingLayout() {
     };
   }, [socket]);
 
+  /* CHAT ROOM */
   useEffect(() => {
     if (!roomId) return;
 
     setMessages([]);
-
-    console.log("Joining room:", roomId);
 
     socket.emit("joinRoom", roomId);
     socket.emit("fetchMessages", roomId);
@@ -145,6 +163,7 @@ export default function MessagingLayout() {
     };
   }, [roomId, socket]);
 
+  /* TYPING INDICATOR */
   useEffect(() => {
     const onTyping = () => {
       setOtherUserTyping(true);
@@ -163,6 +182,7 @@ export default function MessagingLayout() {
     };
   }, [socket]);
 
+  /* AUTO SCROLL */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -174,7 +194,7 @@ export default function MessagingLayout() {
       roomId,
       senderId: me,
       receiverId: selectedUser.id,
-      message: messageText,
+      text: messageText,
     });
 
     setMessageText("");
@@ -187,7 +207,6 @@ export default function MessagingLayout() {
       <Box className="messaging-wrapper">
         <Box className="messaging-container">
           {/* LEFT PANEL */}
-
           <Box className="conversation-panel">
             <Box className="conversation-header">
               <Typography fontWeight={600}>Messaging</Typography>
@@ -218,7 +237,7 @@ export default function MessagingLayout() {
                 .filter((u) =>
                   `${u.firstName ?? ""} ${u.lastName ?? ""}`
                     .toLowerCase()
-                    .includes(search.toLowerCase()),
+                    .includes(search.toLowerCase())
                 )
                 .map((user) => (
                   <div
@@ -243,7 +262,6 @@ export default function MessagingLayout() {
           </Box>
 
           {/* CHAT WINDOW */}
-
           <Box className="chat-window">
             <Box className="chat-header">
               <Typography fontWeight={600}>
@@ -305,13 +323,12 @@ export default function MessagingLayout() {
                       setMessageText(e.target.value);
 
                       if (roomId) {
-                        socket.emit("typing", {
-                          roomId,
-                          userid: me,
-                        });
+                        socket.emit("typing", { roomId });
                       }
                     }}
-                    onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && handleSendMessage()
+                    }
                   />
 
                   {showEmojiPicker && (
@@ -352,3 +369,4 @@ export default function MessagingLayout() {
     </>
   );
 }
+

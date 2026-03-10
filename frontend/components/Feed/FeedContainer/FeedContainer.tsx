@@ -28,16 +28,22 @@ interface User {
 }
 
 export default function FeedContainer() {
-
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/users");
+
+        const res = await axios.get(
+          "http://localhost:5000/users",
+          {
+            withCredentials: true,
+          }
+        );
 
         setUsers(res.data);
+
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
@@ -70,17 +76,32 @@ export default function FeedContainer() {
           justifyContent="space-around"
           className="start-post-actions"
         >
-          <Stack direction="row" alignItems="center" spacing={1} className="post-action">
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            className="post-action"
+          >
             <VideocamIcon className="video-icon" />
             <Typography variant="body2">Video</Typography>
           </Stack>
 
-          <Stack direction="row" alignItems="center" spacing={1} className="post-action">
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            className="post-action"
+          >
             <ImageIcon className="photo-icon" />
             <Typography variant="body2">Photo</Typography>
           </Stack>
 
-          <Stack direction="row" alignItems="center" spacing={1} className="post-action">
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            className="post-action"
+          >
             <ArticleIcon className="article-icon" />
             <Typography variant="body2">Write article</Typography>
           </Stack>
@@ -95,11 +116,15 @@ export default function FeedContainer() {
         </Typography>
 
         {loading && (
-          <Typography sx={{ mt: 2 }}>Loading users...</Typography>
+          <Typography sx={{ mt: 2 }}>
+            Loading users...
+          </Typography>
         )}
 
         {!loading && users.length === 0 && (
-          <Typography sx={{ mt: 2 }}>No users found</Typography>
+          <Typography sx={{ mt: 2 }}>
+            No users found
+          </Typography>
         )}
 
         {users.map((user) => (

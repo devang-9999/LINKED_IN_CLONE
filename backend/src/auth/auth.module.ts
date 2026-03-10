@@ -10,13 +10,20 @@ import { JwtStrategy } from './jwtStrategy/jwt.strategy';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Auth, User]),
+
     JwtModule.register({
+      global: true,
       secret: process.env.JWT_SECRET || 'DEVANG',
-      signOptions: { expiresIn: '1d' },
+      signOptions: {
+        expiresIn: '1d',
+      },
     }),
   ],
+
   controllers: [AuthController],
+
   providers: [AuthService, JwtStrategy],
-  exports: [JwtModule],
+
+  exports: [AuthService],
 })
 export class AuthModule {}

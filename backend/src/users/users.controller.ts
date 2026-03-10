@@ -33,7 +33,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getMyProfile(@Req() req: any) {
-    const userId = req.user.sub;
+    // const userId = req.user.sub;
+    const userId = req.user.userId;
     return this.usersService.getMyProfile(userId);
   }
 
@@ -57,7 +58,8 @@ export class UsersController {
       coverPicture?: Express.Multer.File[];
     },
   ) {
-    const userId = req.user.sub;
+    // const userId = req.user.sub;
+    const userId = req.user.userId;
 
     const profilePicture = files?.profilePicture?.[0]?.filename;
     const coverPicture = files?.coverPicture?.[0]?.filename;
@@ -73,7 +75,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('me')
   updateProfile(@Req() req: any, @Body() dto: UpdateUserDto) {
-    const userId = req.user.sub;
+    // const userId = req.user.sub;
+    const userId = req.user.userId;
     return this.usersService.updateProfile(userId, dto);
   }
 
@@ -81,7 +84,8 @@ export class UsersController {
   @Patch('me/profile-picture')
   @UseInterceptors(FileInterceptor('file', multerOptions))
   uploadProfilePicture(@Req() req: any, @UploadedFile() file: any) {
-    const userId = req.user.sub;
+    // const userId = req.user.sub;
+    const userId = req.user.userId;
     return this.usersService.updateProfilePicture(userId, file.filename);
   }
 
@@ -89,7 +93,8 @@ export class UsersController {
   @Patch('me/cover-picture')
   @UseInterceptors(FileInterceptor('file', multerOptions))
   uploadCoverPicture(@Req() req: any, @UploadedFile() file: any) {
-    const userId = req.user.sub;
+    // const userId = req.user.sub;
+    const userId = req.user.userId;
     return this.usersService.updateCoverPicture(userId, file.filename);
   }
 

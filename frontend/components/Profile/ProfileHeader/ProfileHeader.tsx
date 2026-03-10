@@ -78,7 +78,6 @@ export default function ProfileHeader({
           </Typography>
         )}
 
-        {/* Buttons */}
         <Box className="profile-actions" sx={{ mt: 2 }}>
           <Button variant="contained">Open to</Button>
 
@@ -89,4 +88,4 @@ export default function ProfileHeader({
       </div>
     </div>
   );
-}         
+}

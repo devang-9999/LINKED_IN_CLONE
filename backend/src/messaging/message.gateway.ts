@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   ConnectedSocket,
   MessageBody,
@@ -20,6 +24,9 @@ import { Auth } from 'src/auth/entities/auth.entity';
 import { TypingDto } from './dto/typing.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 
+import { JwtService } from '@nestjs/jwt';
+import * as cookie from 'cookie';
+
 interface AuthenticatedSocket extends Socket {
   data: {
     userid?: string;
@@ -29,6 +36,7 @@ interface AuthenticatedSocket extends Socket {
 @WebSocketGateway({
   cors: {
     origin: 'http://localhost:3000',
+    credentials: true,
   },
 })
 export class MessageGateway
@@ -43,13 +51,47 @@ export class MessageGateway
 
     @InjectRepository(Message)
     private readonly messageRepository: Repository<Message>,
+
+    private readonly jwtService: JwtService,
   ) {}
 
   @WebSocketServer()
   server: Server;
 
-  handleConnection(client: Socket) {
-    console.log('Socket connected:', client.id);
+  async handleConnection(client: AuthenticatedSocket) {
+    try {
+      const cookies = cookie.parse(client.handshake.headers.cookie || '');
+      console.log('HEADERS:', client.handshake.headers);
+      console.log('Handshake cookies:', client.handshake.headers.cookie);
+
+      const token = cookies.token;
+
+      if (!token) {
+        client.disconnect();
+        return;
+      }
+
+      const payload = this.jwtService.verify(token);
+
+      const userid = payload.sub;
+
+      client.data.userid = userid;
+
+      await client.join(userid);
+
+      await this.authRepository.update(
+        { user: { id: userid } },
+        { isActive: true },
+      );
+
+      this.server.emit('userOnline', { userid });
+
+      console.log('Socket authenticated:', userid);
+    } catch (err) {
+      client.disconnect();
+    }
+
+    // console.log('Socket connected:', client.id);
   }
 
   async handleDisconnect(client: AuthenticatedSocket) {
@@ -69,22 +111,22 @@ export class MessageGateway
     }
   }
 
-  @SubscribeMessage('onConnection')
-  async onConnection(
-    @MessageBody() userid: string,
-    @ConnectedSocket() client: AuthenticatedSocket,
-  ) {
-    client.data.userid = userid;
-
-    await client.join(userid);
-
-    await this.authRepository.update(
-      { user: { id: userid } },
-      { isActive: true },
-    );
-
-    this.server.emit('userOnline', { userid });
-  }
+  // @SubscribeMessage('onConnection')
+  // async onConnection(
+  //   @MessageBody() userid: string,
+  //   @ConnectedSocket() client: AuthenticatedSocket,
+  // ) {
+  //   client.data.userid = userid;
+  //
+  //   await client.join(userid);
+  //
+  //   await this.authRepository.update(
+  //     { user: { id: userid } },
+  //     { isActive: true },
+  //   );
+  //
+  //   this.server.emit('userOnline', { userid });
+  // }
 
   @SubscribeMessage('joinRoom')
   async joinRoom(

@@ -11,7 +11,6 @@ import { Auth } from './entities/auth.entity';
 import { User } from '../users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { AuthResponseDto } from './dto/authResponse.dto';
 import { RegisterDto } from './dto/signup.dto';
 
 @Injectable()
@@ -26,7 +25,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+  async register(registerDto: RegisterDto) {
     const { email, password } = registerDto;
 
     const existingUser = await this.authRepository.findOne({
@@ -56,12 +55,12 @@ export class AuthService {
     });
 
     return {
-      accessToken: token,
+      token,
       userId: savedUser.id,
     };
   }
 
-  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+  async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
     const authUser = await this.authRepository.findOne({
@@ -86,8 +85,47 @@ export class AuthService {
     });
 
     return {
-      accessToken: token,
+      token,
       userId: authUser.user.id,
+    };
+  }
+
+  async signInWithGoogle(email: string) {
+    const existingUser = await this.authRepository.findOne({
+      where: { email },
+      relations: ['user'],
+    });
+
+    if (existingUser) {
+      const token = this.jwtService.sign({
+        sub: existingUser.user.id,
+        email: existingUser.email,
+      });
+
+      return {
+        token,
+        userId: existingUser.user.id,
+      };
+    }
+
+    const newUser = this.userRepository.create({});
+    const savedUser = await this.userRepository.save(newUser);
+
+    const newAuth = this.authRepository.create({
+      email,
+      user: savedUser,
+    });
+
+    await this.authRepository.save(newAuth);
+
+    const token = this.jwtService.sign({
+      sub: savedUser.id,
+      email,
+    });
+
+    return {
+      token,
+      userId: savedUser.id,
     };
   }
 
@@ -118,44 +156,5 @@ export class AuthService {
     }
 
     return await this.authRepository.remove(user);
-  }
-
-  async signInWithGoogle(email: string): Promise<AuthResponseDto> {
-    const existingUser = await this.authRepository.findOne({
-      where: { email },
-      relations: ['user'],
-    });
-
-    if (existingUser) {
-      const token = this.jwtService.sign({
-        sub: existingUser.user.id,
-        email: existingUser.email,
-      });
-
-      return {
-        accessToken: token,
-        userId: existingUser.user.id,
-      };
-    }
-
-    const newUser = this.userRepository.create({});
-    const savedUser = await this.userRepository.save(newUser);
-
-    const newAuth = this.authRepository.create({
-      email,
-      user: savedUser,
-    });
-
-    await this.authRepository.save(newAuth);
-
-    const token = this.jwtService.sign({
-      sub: savedUser.id,
-      email,
-    });
-
-    return {
-      accessToken: token,
-      userId: savedUser.id,
-    };
   }
 }

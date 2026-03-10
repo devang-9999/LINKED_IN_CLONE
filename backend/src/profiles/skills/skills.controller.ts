@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 import {
   Controller,
   Post,
@@ -23,16 +22,19 @@ export class SkillsController {
 
   @Post()
   addSkill(@Request() req, @Body() dto: AddSkillDto) {
-    return this.skillsService.addSkill(req.user.id, dto);
+    // return this.skillsService.addSkill(req.user.id, dto);
+    return this.skillsService.addSkill(req.user.userId, dto);
   }
 
   @Get()
   getMySkills(@Request() req) {
-    return this.skillsService.getUserSkills(req.user.id);
+    // return this.skillsService.getUserSkills(req.user.id);
+    return this.skillsService.getUserSkills(req.user.userId);
   }
 
   @Delete(':skillId')
   removeSkill(@Request() req, @Param('skillId') skillId: string) {
-    return this.skillsService.removeSkill(req.user.id, skillId);
+    // return this.skillsService.removeSkill(req.user.id, skillId);
+    return this.skillsService.removeSkill(req.user.userId, skillId);
   }
 }

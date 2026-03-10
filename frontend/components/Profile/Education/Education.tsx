@@ -2,6 +2,8 @@
 "use client";
 
 import { useState } from "react";
+import { getCookie } from "cookies-next"; // ✅ NEW (added)
+
 import {
   Box,
   TextField,
@@ -60,43 +62,41 @@ export default function EducationForm({ onClose, onSuccess }: Props) {
   };
 
   const handleSubmit = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const token = localStorage.getItem("token");
+    const payload = {
+      schoolName: form.schoolName,
+      degree: form.degree || undefined,
+      fieldOfStudy: form.fieldOfStudy || undefined,
+      startDate: formatDate(form.startMonth, form.startYear),
+      endDate: formatDate(form.endMonth, form.endYear),
+    };
 
-      const payload = {
-        schoolName: form.schoolName,
-        degree: form.degree || undefined,
-        fieldOfStudy: form.fieldOfStudy || undefined,
-        startDate: formatDate(form.startMonth, form.startYear),
-        endDate: formatDate(form.endMonth, form.endYear),
-      };
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/education`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/education`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to save education");
+        body: JSON.stringify(payload),
       }
+    );
 
-      if (onSuccess) onSuccess();
-      if (onClose) onClose();
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+    if (!response.ok) {
+      throw new Error("Failed to save education");
     }
-  };
+
+    if (onSuccess) onSuccess();
+    if (onClose) onClose();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Box className="edu-overlay">
@@ -105,7 +105,9 @@ export default function EducationForm({ onClose, onSuccess }: Props) {
           Add education
         </Typography>
 
-        <Typography className="edu-required">* Indicates required</Typography>
+        <Typography className="edu-required">
+          * Indicates required
+        </Typography>
 
         <TextField
           label="School*"
@@ -135,7 +137,9 @@ export default function EducationForm({ onClose, onSuccess }: Props) {
           onChange={handleChange}
         />
 
-        <Typography className="edu-section">Start date</Typography>
+        <Typography className="edu-section">
+          Start date
+        </Typography>
 
         <Box className="edu-row">
           <TextField
@@ -179,7 +183,9 @@ export default function EducationForm({ onClose, onSuccess }: Props) {
           </TextField>
         </Box>
 
-        <Typography className="edu-section">End date (or expected)</Typography>
+        <Typography className="edu-section">
+          End date (or expected)
+        </Typography>
 
         <Box className="edu-row">
           <TextField
@@ -232,7 +238,9 @@ export default function EducationForm({ onClose, onSuccess }: Props) {
             {loading ? "Saving..." : "Save"}
           </Button>
 
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>
+            Cancel
+          </Button>
         </Box>
       </Paper>
     </Box>

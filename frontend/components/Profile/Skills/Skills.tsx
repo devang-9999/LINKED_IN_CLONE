@@ -12,8 +12,8 @@ import {
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
-
 import "./Skills.css";
+import { getCookie } from "cookies-next";
 
 interface SkillsFormProps {
   onClose?: () => void;
@@ -38,36 +38,34 @@ export default function SkillsForm({ onClose }: SkillsFormProps) {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!skill.trim()) return;
+  if (!skill.trim()) return;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const token = localStorage.getItem("token");
+    await fetch("http://localhost:5000/skills", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: skill.trim() }),
+    });
 
-      await fetch("http://localhost:5000/skills", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name: skill.trim() }),
-      });
+    setSkill("");
 
-      setSkill("");
-
-      if (onClose) {
-        onClose();
-      }
-    } catch (error) {
-      console.error("Failed to add skill", error);
-    } finally {
-      setLoading(false);
+    if (onClose) {
+      onClose();
     }
-  };
+  } catch (error) {
+    console.error("Failed to add skill", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
-    <Box className="skill-overlay" >
+    <Box className="skill-overlay">
       <Paper className="skill-modal">
         <Typography variant="h6" className="skill-title">
           Add skill

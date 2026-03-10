@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { dataSourceOptions } from './database/data-source/data-source';
 import { EducationModule } from './profiles/education/education.module';
+import { MessageModule } from './messaging/message.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { EducationModule } from './profiles/education/education.module';
     UsersModule,
     ProfilesModule,
     EducationModule,
+    MessageModule,
   ],
 })
 export class AppModule {}

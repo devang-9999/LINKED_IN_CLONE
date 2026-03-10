@@ -34,7 +34,9 @@ import { useAppDispatch } from "@/utils/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { registerUser, socialLogin } from "@/redux/authentication/auth.slice";
-import { getCookie, setCookie } from "cookies-next";
+
+// OLD COOKIE IMPORT
+// import { getCookie, setCookie } from "cookies-next";
 
 const RegisterUserSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -60,6 +62,7 @@ export default function LinkedInSignupPage() {
 
   const showSnackbar = (message: string) =>
     setSnackbar({ open: true, message });
+
   const {
     register,
     handleSubmit,
@@ -84,14 +87,22 @@ export default function LinkedInSignupPage() {
         }),
       ).unwrap();
 
+      console.log(backendRes);
+
+      // OLD TOKEN STORAGE
+      /*
       localStorage.removeItem("token");
       localStorage.setItem("token", backendRes.accessToken);
+
       setCookie("user_data", backendRes.accessToken, {
         maxAge: 60 * 60 * 24 * 1,
         path: "/",
       });
+
       const tokenInCokkie = getCookie("user_data");
       console.log(tokenInCokkie?.toString());
+      */
+
       showSnackbar("Registration successful");
 
       setTimeout(() => router.push("/profile/completeProfile"), 800);
@@ -114,14 +125,22 @@ export default function LinkedInSignupPage() {
         }),
       ).unwrap();
 
+      console.log(backendRes);
+
+      // OLD TOKEN STORAGE
+      /*
       localStorage.removeItem("token");
       localStorage.setItem("token", backendRes.accessToken);
+
       setCookie("user_data", backendRes.accessToken, {
         maxAge: 60 * 60 * 24 * 1,
         path: "/",
       });
+
       const tokenInCokkie = getCookie("user_data");
       console.log(tokenInCokkie?.toString());
+      */
+
       showSnackbar("Registration successful");
 
       setTimeout(() => router.push("/profile/completeProfile"), 800);
@@ -134,6 +153,7 @@ export default function LinkedInSignupPage() {
     if (reason === "clickaway") return;
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
+
   return (
     <>
       <Box className="signup-page-root">
@@ -165,12 +185,9 @@ export default function LinkedInSignupPage() {
                     helperText={errors.email?.message}
                   />
 
-                  <Box
-                    className="password-wrapper"
-                    sx={{ marginTop: "1.5rem" }}
-                  >
+                  <Box sx={{ marginTop: "1.5rem" }}>
                     <FormControl fullWidth error={!!errors.password}>
-                      <InputLabel className="show-btn">Password</InputLabel>
+                      <InputLabel>Password</InputLabel>
                       <OutlinedInput
                         type={showPassword ? "text" : "password"}
                         {...register("password")}
@@ -219,6 +236,7 @@ export default function LinkedInSignupPage() {
                     Agree & Join
                   </Button>
                 </form>
+
                 <Divider>or</Divider>
 
                 <Button

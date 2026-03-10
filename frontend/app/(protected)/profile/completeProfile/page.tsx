@@ -72,7 +72,11 @@ export default function CompleteProfilePage({ onClose }: UpdateProfileProps) {
     setLoading(true);
 
     try {
+
+      /*
+      OLD TOKEN METHOD (REMOVE)
       const token = localStorage.getItem("token");
+      */
 
       const data = new FormData();
 
@@ -93,15 +97,23 @@ export default function CompleteProfilePage({ onClose }: UpdateProfileProps) {
         "http://localhost:5000/users/me/complete-profile",
         data,
         {
+
+          /*
+          OLD HEADER AUTH (REMOVE)
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
+          */
+
+          withCredentials: true,
         },
       );
 
       setSnackbar(true);
-    if (onClose) onClose();
+
+      if (onClose) onClose();
+
       setTimeout(() => {
         router.push("/feed");
       }, 1000);

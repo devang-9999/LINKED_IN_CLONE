@@ -29,7 +29,6 @@ export default function ProfilePage() {
   const [education, setEducation] = useState<any[]>([]);
   const [experience, setExperience] = useState<any[]>([]);
   const [skills, setSkills] = useState<any[]>([]);
-
   const [loading, setLoading] = useState(true);
 
   const [openMenu, setOpenMenu] = useState(false);
@@ -44,21 +43,31 @@ export default function ProfilePage() {
     openSkills ||
     openUpdateProfile;
 
+  /*
+  OLD TOKEN METHOD (REMOVED)
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  */
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        /*
+        OLD HEADERS METHOD
         const headers = {
           Authorization: `Bearer ${token}`,
         };
+        */
+
+        const axiosConfig = {
+          withCredentials: true,
+        };
 
         const [profileRes, eduRes, expRes, skillRes] = await Promise.all([
-          axios.get("http://localhost:5000/users/me", { headers }),
-          axios.get("http://localhost:5000/education", { headers }),
-          axios.get("http://localhost:5000/experience", { headers }),
-          axios.get("http://localhost:5000/skills", { headers }),
+          axios.get("http://localhost:5000/users/me", axiosConfig),
+          axios.get("http://localhost:5000/education", axiosConfig),
+          axios.get("http://localhost:5000/experience", axiosConfig),
+          axios.get("http://localhost:5000/skills", axiosConfig),
         ]);
 
         setProfile(profileRes.data);
@@ -72,10 +81,8 @@ export default function ProfilePage() {
       }
     };
 
-    if (token) {
-      fetchData();
-    }
-  }, [token]);
+    fetchData();
+  }, []);
 
   const backendUrl = "http://localhost:5000/uploads/";
 

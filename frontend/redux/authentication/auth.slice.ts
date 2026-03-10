@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use Client"
+
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
   createUser,
@@ -44,7 +45,6 @@ const initialState: AuthState = {
 
 export const registerUser = createAsyncThunk(
   "user/register",
-
   async (credentials: any, { rejectWithValue }) => {
     console.log(credentials, "credentials in register");
     try {
@@ -69,7 +69,6 @@ export const loginUser = createAsyncThunk(
 
 export const socialLogin = createAsyncThunk(
   "user/loginGoogle",
-
   async (credentials: any, { rejectWithValue }) => {
     console.log(credentials, "credentials in login google");
     try {
@@ -97,11 +96,23 @@ export const fetchUsers = createAsyncThunk(
 export const updateProfile = createAsyncThunk(
   "user/updateProfile",
   async (
+
+    // OLD CODE
     { userid, formData }: { userid: string; formData: FormData },
+
+    // NEW CODE
+    // { formData }: { formData: FormData },
+
     { rejectWithValue },
   ) => {
     try {
+
+      // OLD CODE
       return await updateProfileApi(userid, formData);
+
+      // NEW CODE
+      // return await updateProfileApi(formData);
+
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
@@ -110,13 +121,30 @@ export const updateProfile = createAsyncThunk(
 
 export const fetchCurrentUser = createAsyncThunk(
   "auth/fetchCurrentUser",
+
+  // OLD CODE
   async (userid: string, { rejectWithValue }) => {
     try {
+
+      // OLD CODE
       return await getCurrentUserApi(userid);
+
+      // NEW CODE
+      // return await getCurrentUserApi();
+
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
   },
+
+  // NEW VERSION
+  // async (_, { rejectWithValue }) => {
+  //   try {
+  //     return await getCurrentUserApi();
+  //   } catch (err: any) {
+  //     return rejectWithValue(err.message);
+  //   }
+  // },
 );
 
 const authenticateSlice = createSlice({
