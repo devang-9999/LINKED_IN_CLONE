@@ -105,7 +105,14 @@ export class UsersService {
 
   async getAllUsers() {
     const users = await this.usersRepository.find({
-      select: ['id', 'firstName', 'lastName', 'headline', 'profilePicture'],
+      select: [
+        'id',
+        'firstName',
+        'lastName',
+        'headline',
+        'profilePicture',
+        'coverPicture',
+      ],
     });
 
     return users;

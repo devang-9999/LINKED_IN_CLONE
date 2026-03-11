@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import "./Navbar.css";
-
 import { useRouter } from "next/navigation";
 
 import {
@@ -29,6 +28,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
 import axios from "axios";
+import { getSocket } from "@/utils/socket";
 
 interface UserProfile {
   firstName?: string;
@@ -38,59 +38,58 @@ interface UserProfile {
 }
 
 export default function LinkedInNavbar() {
+
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const router = useRouter();
 
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
   const open = Boolean(anchorEl);
 
-  /*
-  OLD TOKEN METHOD
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  */
+  const backendUrl = "http://localhost:5000/uploads/";
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
 
-        /*
-        OLD HEADER AUTH METHOD
-        const headers = {
-          Authorization: `Bearer ${token}`,
-        };
-        */
+    const fetchInitialData = async () => {
+      try {
 
         const profileRes = await axios.get(
           "http://localhost:5000/users/me",
-          {
-            withCredentials: true,
-          }
+          { withCredentials: true }
         );
 
         setProfile(profileRes.data);
 
+        const countRes = await axios.get(
+          "http://localhost:5000/notifications/unread-count",
+          { withCredentials: true }
+        );
+
+        setNotificationCount(countRes.data);
+
       } catch (error) {
-        console.error("Profile fetch failed", error);
+        console.error("Navbar data fetch failed", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchInitialData();
 
-    /*
-    OLD CONDITIONAL FETCH
-    if (token) {
-      fetchData();
-    }
-    */
+    const socket = getSocket();
+    socket.connect();
+
+    socket.on("notification-count", (data: { unreadCount: number }) => {
+      setNotificationCount(data.unreadCount);
+    });
+
+    return () => {
+      socket.off("notification-count");
+    };
 
   }, []);
-
-  const backendUrl = "http://localhost:5000/uploads/";
 
   if (loading) {
     return <div className="profile-loading">Loading profile...</div>;
@@ -107,17 +106,10 @@ export default function LinkedInNavbar() {
   const handleLogout = async () => {
     try {
 
-      /*
-      OLD LOGOUT METHOD
-      localStorage.removeItem("token");
-      */
-
       await axios.post(
         "http://localhost:5000/auth/logout",
         {},
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
 
       router.push("/authentication/login");
@@ -129,7 +121,10 @@ export default function LinkedInNavbar() {
 
   return (
     <AppBar position="sticky" elevation={0} className="li-navbar">
+
       <Toolbar className="li-toolbar">
+
+        {/* LEFT SECTION */}
 
         <Box className="li-left">
 
@@ -147,6 +142,8 @@ export default function LinkedInNavbar() {
           </div>
 
         </Box>
+
+        {/* RIGHT SECTION */}
 
         <Box className="li-right">
 
@@ -178,12 +175,14 @@ export default function LinkedInNavbar() {
             <span>Messaging</span>
           </div>
 
+          {/* NOTIFICATION ICON */}
+
           <div className="li-nav-item">
             <IconButton
               size="small"
               onClick={() => router.push("/notifications")}
             >
-              <Badge badgeContent={3} color="error">
+              <Badge badgeContent={notificationCount} color="error">
                 <NotificationsIcon />
               </Badge>
             </IconButton>
@@ -191,6 +190,8 @@ export default function LinkedInNavbar() {
           </div>
 
           <Divider orientation="vertical" flexItem />
+
+          {/* PROFILE MENU */}
 
           <div
             className="li-profile"
@@ -268,39 +269,19 @@ export default function LinkedInNavbar() {
                 Account
               </div>
 
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  router.push("/premium");
-                }}
-              >
+              <MenuItem onClick={() => router.push("/premium")}>
                 Try 1 month of Premium for ₹0
               </MenuItem>
 
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  router.push("/settings");
-                }}
-              >
+              <MenuItem onClick={() => router.push("/settings")}>
                 Settings & Privacy
               </MenuItem>
 
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  router.push("/help");
-                }}
-              >
+              <MenuItem onClick={() => router.push("/help")}>
                 Help
               </MenuItem>
 
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  router.push("/language");
-                }}
-              >
+              <MenuItem onClick={() => router.push("/language")}>
                 Language
               </MenuItem>
 
@@ -314,21 +295,11 @@ export default function LinkedInNavbar() {
                 Manage
               </div>
 
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  router.push("/posts");
-                }}
-              >
+              <MenuItem onClick={() => router.push("/posts")}>
                 Posts & Activity
               </MenuItem>
 
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  router.push("/job-posting");
-                }}
-              >
+              <MenuItem onClick={() => router.push("/job-posting")}>
                 Job Posting Account
               </MenuItem>
 
@@ -348,7 +319,9 @@ export default function LinkedInNavbar() {
           </Menu>
 
         </Box>
+
       </Toolbar>
+
     </AppBar>
   );
 }

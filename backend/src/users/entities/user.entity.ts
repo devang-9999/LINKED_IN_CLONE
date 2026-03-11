@@ -12,6 +12,8 @@ import { Experience } from 'src/profiles/experience/entities/experience.entity';
 import { UserSkill } from 'src/profiles/skills/entities/user-skill.entity';
 import { Auth } from 'src/auth/entities/auth.entity';
 import { Post } from 'src/posts/entities/post.entity';
+import { Follow } from 'src/follow/entities/follow.entity';
+import { Connection } from 'src/connection/entities/connection.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -57,4 +59,16 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => Follow, (follow) => follow.follower)
+  following: Follow[];
+
+  @OneToMany(() => Follow, (follow) => follow.following)
+  followers: Follow[];
+
+  @OneToMany(() => Connection, (connection) => connection.sender)
+  sentConnections: Connection[];
+
+  @OneToMany(() => Connection, (connection) => connection.receiver)
+  receivedConnections: Connection[];
 }

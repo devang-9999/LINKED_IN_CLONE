@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
@@ -14,44 +16,49 @@ import {
   Typography,
   Stack,
   TextField,
-  Dialog,
-  DialogContent
 } from "@mui/material";
 
 import ThumbUpOffAltIcon from "@mui/icons-material/ThumbUpOffAlt";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
-import RepeatIcon from "@mui/icons-material/Repeat";
+import RepeatIcon from "@mui/icons-material/Repeat";  
 import SendIcon from "@mui/icons-material/Send";
 
 import VideocamIcon from "@mui/icons-material/Videocam";
 import ImageIcon from "@mui/icons-material/Image";
 import ArticleIcon from "@mui/icons-material/Article";
-import PostModal from "../Post/PostModal";
 
-interface Post {
-  id: string;
-  content: string;
-  imageUrl?: string;
-  user: {
-    firstName?: string;
-    lastName?: string;
-    profilePicture?: string;
-  };
-  createdAt: string;
-}
+import PostModal from "../Post/PostModal";
 
 interface Comment {
   id: string;
   text: string;
   userId: string;
+  replies?: Comment[];
+}
+
+interface Post {
+  id: string;
+  content: string;
+  imageUrl?: string;
+  createdAt: string;
+  user: {
+    firstName?: string;
+    lastName?: string;
+    profilePicture?: string;
+  };
 }
 
 export default function FeedContainer() {
-
   const backendUrl = "http://localhost:5000";
 
   const [userId, setUserId] = useState("");
   const [posts, setPosts] = useState<Post[]>([]);
+  const [openReply, setOpenReply] = useState<Record<string, boolean>>({});
+  const [likes, setLikes] = useState<Record<string, number>>({});
+  const [comments, setComments] = useState<Record<string, Comment[]>>({});
+  const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
+  const [commentInput, setCommentInput] = useState<Record<string, string>>({});
+  const [replyInput, setReplyInput] = useState<Record<string, string>>({});
 
   const [openModal, setOpenModal] = useState(false);
   const [content, setContent] = useState("");
@@ -59,166 +66,229 @@ export default function FeedContainer() {
 
   const [posting, setPosting] = useState(false);
 
-  const [likes, setLikes] = useState<Record<string, number>>({});
-  const [comments, setComments] = useState<Record<string, Comment[]>>({});
-  const [commentInput, setCommentInput] = useState<Record<string, string>>({});
-
-  // -------------------------
+  // -----------------------
   // Fetch logged user
-  // -------------------------
+  // -----------------------
   const fetchUser = async () => {
     try {
-
-      const res = await axios.get(
-        `${backendUrl}/users/me`,
-        { withCredentials: true }
-      );
-
+      const res = await axios.get(`${backendUrl}/users/me`, {
+        withCredentials: true,
+      });
       setUserId(res.data.id);
-
     } catch (err) {
       console.error("User fetch error", err);
     }
   };
 
-  // -------------------------
+  // -----------------------
   // Fetch posts
-  // -------------------------
+  // -----------------------
   const fetchPosts = async () => {
     try {
-
-      const res = await axios.get(
-        `${backendUrl}/posts`,
-        { withCredentials: true }
-      );
+      const res = await axios.get(`${backendUrl}/posts`, {
+        withCredentials: true,
+      });
 
       setPosts(res.data);
 
       res.data.forEach((p: Post) => {
         fetchLikes(p.id);
       });
-
     } catch (err) {
       console.error("Fetch posts error", err);
     }
   };
 
-  // -------------------------
+  // -----------------------
   // Fetch likes
-  // -------------------------
+  // -----------------------
   const fetchLikes = async (postId: string) => {
     try {
-
-      const res = await axios.get(
-        `${backendUrl}/post-likes/${postId}`
-      );
+      const res = await axios.get(`${backendUrl}/post-likes/${postId}`);
 
       setLikes((prev) => ({
         ...prev,
-        [postId]: res.data.likesCount
+        [postId]: res.data.likesCount,
       }));
-
     } catch (err) {
       console.error("Likes fetch error", err);
     }
   };
 
-  // -------------------------
+  // -----------------------
   // Toggle like
-  // -------------------------
+  // -----------------------
   const toggleLike = async (postId: string) => {
-
     try {
-
       await axios.post(
         `${backendUrl}/post-likes`,
-        {
-          postId,
-          userId
-        },
-        { withCredentials: true }
+        { postId, userId },
+        { withCredentials: true },
       );
 
       fetchLikes(postId);
-
     } catch (err) {
       console.error("Like error", err);
     }
   };
 
-  // -------------------------
+  // -----------------------
   // Fetch comments
-  // -------------------------
+  // -----------------------
   const fetchComments = async (postId: string) => {
-
     try {
-
-      const res = await axios.get(
-        `${backendUrl}/comments/${postId}`
-      );
+      const res = await axios.get(`${backendUrl}/comments/${postId}`);
 
       setComments((prev) => ({
         ...prev,
-        [postId]: res.data
+        [postId]: res.data,
       }));
-
     } catch (err) {
       console.error("Comments fetch error", err);
     }
   };
 
-  // -------------------------
+  // -----------------------
   // Add comment
-  // -------------------------
+  // -----------------------
   const addComment = async (postId: string) => {
-
     const text = commentInput[postId];
 
     if (!text) return;
 
     try {
-
       await axios.post(
         `${backendUrl}/comments`,
-        {
-          text,
-          postId,
-          userId
-        },
-        { withCredentials: true }
+        { text, postId, userId },
+        { withCredentials: true },
       );
 
       setCommentInput((prev) => ({
         ...prev,
-        [postId]: ""
+        [postId]: "",
       }));
 
       fetchComments(postId);
-
     } catch (err) {
       console.error("Comment error", err);
     }
   };
 
-  // -------------------------
-  // Create post
-  // -------------------------
-  const createPost = async () => {
+  // -----------------------
+  // Add reply
+  // -----------------------
+  const addReply = async (postId: string, parentCommentId: string) => {
+    const text = replyInput[parentCommentId];
 
+    if (!text) return;
+
+    try {
+      await axios.post(
+        `${backendUrl}/comments`,
+        {
+          text,
+          postId,
+          userId,
+          parentCommentId,
+        },
+        { withCredentials: true },
+      );
+
+      setReplyInput((prev) => ({
+        ...prev,
+        [parentCommentId]: "",
+      }));
+
+      fetchComments(postId);
+    } catch (err) {
+      console.error("Reply error", err);
+    }
+  };
+
+  // -----------------------
+  // Recursive comment renderer
+  // -----------------------
+const renderComments = (
+  commentList: Comment[],
+  postId: string,
+  level = 0,
+) => {
+  return commentList.map((c) => (
+    <Box key={c.id} sx={{ ml: level * 3, mt: 1 }}>
+
+      <Typography sx={{ mb: 1 }}>{c.text}</Typography>
+
+      {/* Reply Button */}
+
+      <Button
+        size="small"
+        onClick={() => toggleReply(c.id)}
+      >
+        Reply
+      </Button>
+
+      {/* Reply Input Toggle */}
+
+      {openReply[c.id] && (
+        <Stack direction="row" spacing={1} mt={1}>
+          <TextField
+            size="small"
+            placeholder="Reply..."
+            fullWidth
+            value={replyInput[c.id] || ""}
+            onChange={(e) =>
+              setReplyInput((prev) => ({
+                ...prev,
+                [c.id]: e.target.value,
+              }))
+            }
+          />
+
+          <Button
+            variant="contained"
+            onClick={() => addReply(postId, c.id)}
+          >
+            Reply
+          </Button>
+        </Stack>
+      )}
+
+      {/* Nested Replies */}
+
+      {c.replies && renderComments(c.replies, postId, level + 1)}
+
+    </Box>
+  ));
+};
+
+  const toggleComments = async (postId: string) => {
+    const isOpen = openComments[postId];
+
+    // toggle state
+    setOpenComments((prev) => ({
+      ...prev,
+      [postId]: !isOpen,
+    }));
+
+    // fetch comments only first time
+    if (!isOpen && !comments[postId]) {
+      fetchComments(postId);
+    }
+  };
+
+  // -----------------------
+  // Create post
+  // -----------------------
+  const createPost = async () => {
     if (!content.trim()) return;
 
     try {
-
       setPosting(true);
 
       await axios.post(
         `${backendUrl}/posts`,
-        {
-          content,
-          imageUrl,
-          userId
-        },
-        { withCredentials: true }
+        { content, imageUrl, userId },
+        { withCredentials: true },
       );
 
       setContent("");
@@ -226,7 +296,6 @@ export default function FeedContainer() {
       setOpenModal(false);
 
       fetchPosts();
-
     } catch (err) {
       console.error("Post create error", err);
     } finally {
@@ -235,21 +304,23 @@ export default function FeedContainer() {
   };
 
   useEffect(() => {
-
     fetchUser();
     fetchPosts();
+  }, []);
 
-  }, [fetchPosts]);
+  const toggleReply = (commentId: string) => {
+  setOpenReply((prev) => ({
+    ...prev,
+    [commentId]: !prev[commentId],
+  }));
+};
 
   return (
     <Box>
-
-      {/* START POST */}
+      {/* Start Post */}
 
       <Paper elevation={1} className="start-post-card">
-
         <Stack direction="row" spacing={1.5} alignItems="center">
-
           <Avatar src="/profile.jpg" />
 
           <Button
@@ -260,7 +331,6 @@ export default function FeedContainer() {
           >
             Start a post
           </Button>
-
         </Stack>
 
         <Stack
@@ -268,7 +338,6 @@ export default function FeedContainer() {
           justifyContent="space-around"
           className="start-post-actions"
         >
-
           <Stack direction="row" spacing={1} alignItems="center">
             <VideocamIcon />
             <Typography>Video</Typography>
@@ -283,77 +352,24 @@ export default function FeedContainer() {
             <ArticleIcon />
             <Typography>Write article</Typography>
           </Stack>
-
         </Stack>
-
       </Paper>
 
-
-      {/* CREATE POST MODAL */}
-
-      {/* <Dialog
+      <PostModal
         open={openModal}
         onClose={() => setOpenModal(false)}
-        fullWidth
-        maxWidth="sm"
-      >
+        content={content}
+        setContent={setContent}
+        imageUrl={imageUrl}
+        setImageUrl={setImageUrl}
+        createPost={createPost}
+      />
 
-        <DialogContent>
-
-          <Typography variant="h6">
-            Create Post
-          </Typography>
-
-          <TextField
-            multiline
-            rows={5}
-            placeholder="What do you want to talk about?"
-            fullWidth
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-
-          <TextField
-            placeholder="Image URL"
-            fullWidth
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-
-          <Button
-            variant="contained"
-            sx={{ mt: 2 }}
-            disabled={posting}
-            onClick={createPost}
-          >
-            {posting ? "Posting..." : "Post"}
-          </Button>
-
-        </DialogContent>
-
-      </Dialog> */}
-<PostModal
-  open={openModal}
-  onClose={() => setOpenModal(false)}
-  content={content}
-  setContent={setContent}
-  imageUrl={imageUrl}
-  setImageUrl={setImageUrl}
-  createPost={createPost}
-/>
-
-      {/* POSTS */}
+      {/* Posts */}
 
       {posts.map((post) => (
-
         <Paper key={post.id} className="post-card">
-
-          {/* HEADER */}
-
           <Stack direction="row" spacing={1.5} alignItems="center">
-
             <Avatar
               src={
                 post.user?.profilePicture
@@ -363,7 +379,6 @@ export default function FeedContainer() {
             />
 
             <Box>
-
               <Typography className="post-user">
                 {post.user?.firstName} {post.user?.lastName}
               </Typography>
@@ -371,33 +386,22 @@ export default function FeedContainer() {
               <Typography className="post-time">
                 {new Date(post.createdAt).toLocaleDateString()}
               </Typography>
-
             </Box>
-
           </Stack>
 
-          {/* CONTENT */}
-
-          <Typography className="post-text">
-            {post.content}
-          </Typography>
+          <Typography className="post-text">{post.content}</Typography>
 
           {post.imageUrl && (
-            <img
-              src={post.imageUrl}
-              className="post-image"
-              alt="post"
-            />
+            <img src={post.imageUrl} className="post-image" alt="post" />
           )}
 
-          {/* ACTIONS */}
+          {/* Post actions */}
 
           <Stack
             direction="row"
             justifyContent="space-around"
             className="post-actions"
           >
-
             <Stack
               direction="row"
               spacing={1}
@@ -414,7 +418,7 @@ export default function FeedContainer() {
               direction="row"
               spacing={1}
               alignItems="center"
-              onClick={() => fetchComments(post.id)}
+              onClick={() => toggleComments(post.id)}
             >
               <ChatBubbleOutlineIcon />
               <Typography>Comment</Typography>
@@ -429,26 +433,15 @@ export default function FeedContainer() {
               <SendIcon />
               <Typography>Send</Typography>
             </Stack>
-
           </Stack>
 
+          {/* Comments */}
 
-          {/* COMMENTS */}
-
-          {comments[post.id] && (
-
+          {openComments[post.id] && comments[post.id] && (
             <Box mt={2}>
-
-              {comments[post.id].map((c) => (
-
-                <Typography key={c.id} sx={{ mb: 1 }}>
-                  {c.text}
-                </Typography>
-
-              ))}
+              {renderComments(comments[post.id], post.id)}
 
               <Stack direction="row" spacing={1}>
-
                 <TextField
                   size="small"
                   placeholder="Write a comment..."
@@ -457,28 +450,19 @@ export default function FeedContainer() {
                   onChange={(e) =>
                     setCommentInput((prev) => ({
                       ...prev,
-                      [post.id]: e.target.value
+                      [post.id]: e.target.value,
                     }))
                   }
                 />
 
-                <Button
-                  variant="contained"
-                  onClick={() => addComment(post.id)}
-                >
+                <Button variant="contained" onClick={() => addComment(post.id)}>
                   Post
                 </Button>
-
               </Stack>
-
             </Box>
-
           )}
-
         </Paper>
-
       ))}
-
     </Box>
   );
 }
