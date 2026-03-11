@@ -11,6 +11,7 @@ import { Education } from 'src/profiles/education/entities/education.entity';
 import { Experience } from 'src/profiles/experience/entities/experience.entity';
 import { UserSkill } from 'src/profiles/skills/entities/user-skill.entity';
 import { Auth } from 'src/auth/entities/auth.entity';
+import { Post } from 'src/posts/entities/post.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -47,6 +48,9 @@ export class User {
 
   @OneToMany(() => UserSkill, (userSkill) => userSkill.user, { cascade: true })
   skills?: UserSkill[];
+
+  @OneToMany(() => Post, (post) => post.user)
+  posts: Post[];
 
   @CreateDateColumn()
   createdAt: Date;

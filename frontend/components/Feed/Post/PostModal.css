@@ -1,0 +1,56 @@
+.post-modal .MuiDialog-paper{
+  border-radius:10px;
+}
+
+.post-modal-content{
+  padding:20px;
+}
+
+.post-modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.post-user-name{
+  font-weight:600;
+  font-size:16px;
+}
+
+.post-visibility{
+  font-size:13px;
+  color:#666;
+}
+
+.post-textarea textarea{
+  border:none !important;
+  font-size:22px;
+  line-height:1.4;
+}
+
+.post-textarea textarea::placeholder{
+  font-size:22px;
+  color:#777;
+}
+
+.post-bottom{
+  margin-top:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.rewrite-btn{
+  border:1px solid #ccc;
+  border-radius:20px;
+  text-transform:none;
+  padding:4px 12px;
+  font-size:14px;
+}
+
+.post-btn{
+  border-radius:20px;
+  text-transform:none;
+  padding:6px 20px;
+}
