@@ -3,11 +3,14 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Follow } from './entities/follow.entity';
 import { User } from 'src/users/entities/user.entity';
+import { NotificationService } from 'src/notifications/notification.service';
+import { NotificationType } from 'src/notifications/entities/notification.entity';
 
 @Injectable()
 export class FollowService {
@@ -17,6 +20,8 @@ export class FollowService {
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    private notificationService: NotificationService,
   ) {}
 
   // FOLLOW USER
@@ -55,6 +60,13 @@ export class FollowService {
 
     await this.followRepository.save(follow);
 
+    // send notification
+    await this.notificationService.createNotification(
+      currentUser,
+      targetUser,
+      'started following you',
+      NotificationType.FOLLOW,
+    );
     return {
       message: 'User followed successfully',
     };
@@ -80,7 +92,7 @@ export class FollowService {
     };
   }
 
-  // GET FOLLOWERS LIST
+  // GET FOLLOWERS
   async getFollowers(userId: string) {
     const followers = await this.followRepository.find({
       where: {
@@ -92,7 +104,7 @@ export class FollowService {
     return followers.map((follow) => follow.follower);
   }
 
-  // GET FOLLOWING LIST
+  // GET FOLLOWING
   async getFollowing(userId: string) {
     const following = await this.followRepository.find({
       where: {
@@ -104,7 +116,7 @@ export class FollowService {
     return following.map((follow) => follow.following);
   }
 
-  // FOLLOW STATUS (used by frontend buttons)
+  // FOLLOW STATUS
   async followStatus(currentUserId: string, targetUserId: string) {
     const follow = await this.followRepository.findOne({
       where: {
@@ -118,7 +130,7 @@ export class FollowService {
     };
   }
 
-  // FOLLOWERS COUNT (for profile / suggestion cards)
+  // FOLLOWERS COUNT
   async getFollowersCount(userId: string) {
     const count = await this.followRepository.count({
       where: {

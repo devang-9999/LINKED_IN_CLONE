@@ -1,7 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not, In } from 'typeorm';
+
 import { User } from './entities/user.entity';
+import { Follow } from 'src/follow/entities/follow.entity';
+import {
+  Connection,
+  ConnectionStatus,
+} from 'src/connection/entities/connection.entity';
+
 import { CompleteProfileDto } from './dto/completeProfile.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 
@@ -10,6 +17,12 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+
+    @InjectRepository(Follow)
+    private readonly followRepository: Repository<Follow>,
+
+    @InjectRepository(Connection)
+    private readonly connectionRepository: Repository<Connection>,
   ) {}
 
   private async findUserWithRelations(userId: string): Promise<User> {
@@ -62,13 +75,8 @@ export class UsersService {
     if (dto.headline !== undefined) user.headline = dto.headline;
     if (dto.about !== undefined) user.about = dto.about;
 
-    if (profilePicture) {
-      user.profilePicture = profilePicture;
-    }
-
-    if (coverPicture) {
-      user.coverPicture = coverPicture;
-    }
+    if (profilePicture) user.profilePicture = profilePicture;
+    if (coverPicture) user.coverPicture = coverPicture;
 
     return this.usersRepository.save(user);
   }
@@ -80,9 +88,14 @@ export class UsersService {
     if (dto.lastName !== undefined) user.lastName = dto.lastName;
     if (dto.headline !== undefined) user.headline = dto.headline;
     if (dto.about !== undefined) user.about = dto.about;
-    if (dto.profilePicture !== undefined)
+
+    if (dto.profilePicture !== undefined) {
       user.profilePicture = dto.profilePicture;
-    if (dto.coverPicture !== undefined) user.coverPicture = dto.coverPicture;
+    }
+
+    if (dto.coverPicture !== undefined) {
+      user.coverPicture = dto.coverPicture;
+    }
 
     return this.usersRepository.save(user);
   }
@@ -104,7 +117,56 @@ export class UsersService {
   }
 
   async getAllUsers() {
+    return this.usersRepository.find({
+      select: [
+        'id',
+        'firstName',
+        'lastName',
+        'headline',
+        'profilePicture',
+        'coverPicture',
+      ],
+    });
+  }
+
+  async getSuggestions(currentUserId: string) {
+    // USERS ALREADY FOLLOWED
+    const follows = await this.followRepository.find({
+      where: { follower: { id: currentUserId } },
+      relations: ['following'],
+    });
+
+    const followedIds = follows.map((f) => f.following.id);
+
+    // ACCEPTED CONNECTIONS ONLY
+    const acceptedConnections = await this.connectionRepository.find({
+      where: [
+        {
+          sender: { id: currentUserId },
+          status: ConnectionStatus.ACCEPTED,
+        },
+        {
+          receiver: { id: currentUserId },
+          status: ConnectionStatus.ACCEPTED,
+        },
+      ],
+      relations: ['sender', 'receiver'],
+    });
+
+    const acceptedConnectionIds = acceptedConnections.map((c) =>
+      c.sender.id === currentUserId ? c.receiver.id : c.sender.id,
+    );
+
+    const excludedIds = [
+      currentUserId,
+      ...followedIds,
+      ...acceptedConnectionIds,
+    ];
+
     const users = await this.usersRepository.find({
+      where: {
+        id: Not(In(excludedIds)),
+      },
       select: [
         'id',
         'firstName',

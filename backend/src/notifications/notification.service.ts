@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Notification } from './entities/notification.entity';
+import { Notification, NotificationType } from './entities/notification.entity';
 import { User } from 'src/users/entities/user.entity';
 import { NotificationGateway } from './notification.gateway';
 
@@ -15,13 +15,12 @@ export class NotificationService {
     private notificationGateway: NotificationGateway,
   ) {}
 
-  // CREATE NOTIFICATION
   async createNotification(
     sender: User,
     receiver: User,
     message: string,
-    type: string = 'FOLLOW',
-  ) {
+    type: NotificationType,
+  ): Promise<Notification> {
     const notification = this.notificationRepo.create({
       sender,
       receiver,
@@ -37,13 +36,14 @@ export class NotificationService {
 
     // update unread count
     const unreadCount = await this.getUnreadCount(receiver.id);
+
     this.notificationGateway.sendUnreadCount(receiver.id, unreadCount);
 
     return savedNotification;
   }
 
   // GET ALL NOTIFICATIONS
-  async getNotifications(userId: string) {
+  async getNotifications(userId: string): Promise<Notification[]> {
     return this.notificationRepo.find({
       where: {
         receiver: { id: userId },
@@ -54,7 +54,7 @@ export class NotificationService {
   }
 
   // GET UNREAD COUNT
-  async getUnreadCount(userId: string) {
+  async getUnreadCount(userId: string): Promise<number> {
     return this.notificationRepo.count({
       where: {
         receiver: { id: userId },
@@ -70,14 +70,12 @@ export class NotificationService {
       relations: ['receiver'],
     });
 
-    if (!notification) {
-      return null;
-    }
+    if (!notification) return null;
 
     notification.isRead = true;
+
     await this.notificationRepo.save(notification);
 
-    // update unread count after marking read
     const unreadCount = await this.getUnreadCount(notification.receiver.id);
 
     this.notificationGateway.sendUnreadCount(

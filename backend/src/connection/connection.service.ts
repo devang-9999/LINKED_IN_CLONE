@@ -3,11 +3,15 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Connection, ConnectionStatus } from './entities/connection.entity';
 import { User } from 'src/users/entities/user.entity';
+
+import { NotificationService } from 'src/notifications/notification.service';
+import { NotificationType } from 'src/notifications/entities/notification.entity';
 
 @Injectable()
 export class ConnectionService {
@@ -17,6 +21,8 @@ export class ConnectionService {
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    private notificationService: NotificationService,
   ) {}
 
   // SEND CONNECTION REQUEST
@@ -56,6 +62,14 @@ export class ConnectionService {
 
     await this.connectionRepository.save(connection);
 
+    // SEND NOTIFICATION
+    await this.notificationService.createNotification(
+      sender,
+      receiver,
+      'sent you a connection request',
+      NotificationType.CONNECTION_REQUEST,
+    );
+
     return {
       message: 'Connection request sent',
     };
@@ -65,7 +79,7 @@ export class ConnectionService {
   async acceptRequest(connectionId: string, currentUserId: string) {
     const connection = await this.connectionRepository.findOne({
       where: { id: connectionId },
-      relations: ['receiver'],
+      relations: ['sender', 'receiver'],
     });
 
     if (!connection) {
@@ -79,6 +93,14 @@ export class ConnectionService {
     connection.status = ConnectionStatus.ACCEPTED;
 
     await this.connectionRepository.save(connection);
+
+    // SEND ACCEPT NOTIFICATION
+    await this.notificationService.createNotification(
+      connection.receiver,
+      connection.sender,
+      'accepted your connection request',
+      NotificationType.CONNECTION_ACCEPTED,
+    );
 
     return {
       message: 'Connection request accepted',
@@ -131,7 +153,7 @@ export class ConnectionService {
     });
   }
 
-  // GET CONNECTIONS (ACCEPTED)
+  // GET CONNECTIONS
   async getConnections(userId: string) {
     const connections = await this.connectionRepository.find({
       where: [
@@ -142,10 +164,9 @@ export class ConnectionService {
     });
 
     return connections.map((connection) => {
-      if (connection.sender.id === userId) {
-        return connection.receiver;
-      }
-      return connection.sender;
+      return connection.sender.id === userId
+        ? connection.receiver
+        : connection.sender;
     });
   }
 }

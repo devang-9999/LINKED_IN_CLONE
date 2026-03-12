@@ -8,9 +8,8 @@
 }
 
 .suggestion-card:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
-
 
 /* ===== COVER ===== */
 
@@ -30,10 +29,9 @@
   position: absolute !important;
   top: 8px;
   right: 8px;
-  background: rgba(0,0,0,0.6) !important;
+  background: rgba(0, 0, 0, 0.6) !important;
   color: white !important;
 }
-
 
 /* ===== AVATAR ===== */
 
@@ -48,7 +46,6 @@
   height: 64px !important;
   border: 2px solid white;
 }
-
 
 /* ===== BODY ===== */
 
@@ -76,17 +73,17 @@
   margin-bottom: 12px !important;
 }
 
-
 /* ===== FOLLOW BUTTON ===== */
 
 .follow-btn {
   border-radius: 24px !important;
   text-transform: none !important;
   font-weight: 600 !important;
-  color: #0a66c2 !important;
+  color: #ffffff !important;
+  background-color: #1282f3;
   border-color: #0a66c2 !important;
 }
 
 .follow-btn:hover {
-  background: #e7f3ff !important;
+  background: #000000 !important;
 }

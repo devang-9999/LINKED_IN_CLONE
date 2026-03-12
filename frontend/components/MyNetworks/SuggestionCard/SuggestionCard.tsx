@@ -1,5 +1,7 @@
-/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,7 +15,7 @@ import {
   Avatar,
   Button,
   IconButton,
-  Paper
+  Paper,
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
@@ -22,7 +24,7 @@ import AddIcon from "@mui/icons-material/Add";
 import {
   followUser,
   unfollowUser,
-  sendConnectionRequest
+  sendConnectionRequest,
 } from "../../../redux/network/network.service";
 
 const backendUrl = "http://localhost:5000/uploads/";
@@ -39,74 +41,123 @@ interface User {
 
 interface SuggestionCardProps {
   user: User;
+  onRemove?: (id: string) => void;
 }
 
-const SuggestionCard: React.FC<SuggestionCardProps> = ({ user }) => {
+export default function SuggestionCard({
+  user,
+  onRemove,
+}: SuggestionCardProps) {
 
   const [followed, setFollowed] = useState(false);
   const [requested, setRequested] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
 
-  // CHECK FOLLOW STATUS
+  // FOLLOW STATUS
   const checkFollowStatus = async () => {
     try {
+
       const res = await axios.get(
         `${API}/follow/status/${user.id}`,
         { withCredentials: true }
       );
 
       setFollowed(res.data.isFollowing);
+
     } catch (err) {
-      console.error(err);
+      console.error("Follow status error:", err);
     }
   };
 
-  // GET FOLLOWERS COUNT
+  // FOLLOWERS COUNT
   const getFollowersCount = async () => {
     try {
+
       const res = await axios.get(
         `${API}/follow/count/${user.id}`
       );
 
       setFollowersCount(res.data.followersCount);
+
     } catch (err) {
-      console.error(err);
+      console.error("Followers count error:", err);
     }
   };
 
-  // FOLLOW / UNFOLLOW TOGGLE
+  // CHECK CONNECTION REQUEST STATUS
+  const checkConnectionStatus = async () => {
+    try {
+
+      const res = await axios.get(
+        `${API}/connections/sent`,
+        { withCredentials: true }
+      );
+
+      const exists = res.data.some(
+        (req: any) => req.receiver.id === user.id
+      );
+
+      setRequested(exists);
+
+    } catch (err) {
+      console.error("Connection status error:", err);
+    }
+  };
+
+  // FOLLOW / UNFOLLOW
   const handleFollowToggle = async () => {
+
     try {
 
       if (followed) {
+
         await unfollowUser(user.id);
+
         setFollowed(false);
-        setFollowersCount((prev) => prev - 1);
+
+        setFollowersCount((prev) =>
+          Math.max(prev - 1, 0)
+        );
+
       } else {
+
         await followUser(user.id);
+
         setFollowed(true);
+
         setFollowersCount((prev) => prev + 1);
+
       }
 
     } catch (err) {
-      console.error(err);
+      console.error("Follow toggle error:", err);
     }
   };
 
-  // CONNECT REQUEST
+  // SEND CONNECTION REQUEST
   const handleConnect = async () => {
+
     try {
+
       await sendConnectionRequest(user.id);
+
       setRequested(true);
+
     } catch (err) {
-      console.error(err);
+      console.error("Connection request error:", err);
     }
   };
 
+  // INITIAL FETCH
   useEffect(() => {
+
+    if (!user?.id) return;
+
     checkFollowStatus();
     getFollowersCount();
-  }, []);
+    checkConnectionStatus();
+
+  }, [user.id]);
 
   return (
     <Paper elevation={0} className="suggestion-card">
@@ -124,7 +175,12 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ user }) => {
           className="cover-image"
         />
 
-        <IconButton className="close-btn" size="small">
+        {/* REMOVE CARD */}
+        <IconButton
+          className="close-btn"
+          size="small"
+          onClick={() => onRemove?.(user.id)}
+        >
           <CloseIcon fontSize="small" />
         </IconButton>
 
@@ -132,6 +188,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ user }) => {
 
       {/* PROFILE IMAGE */}
       <Box className="avatar-wrapper">
+
         <Avatar
           src={
             user.profilePicture
@@ -140,18 +197,22 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ user }) => {
           }
           className="avatar"
         />
+
       </Box>
 
       <Box className="card-body">
 
+        {/* NAME */}
         <Typography className="name">
           {user.firstName} {user.lastName}
         </Typography>
 
+        {/* HEADLINE */}
         <Typography className="headline">
           {user.headline}
         </Typography>
 
+        {/* FOLLOWERS */}
         <Typography className="followers">
           {followersCount} followers
         </Typography>
@@ -163,34 +224,37 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ user }) => {
           variant={followed ? "contained" : "outlined"}
           fullWidth
           onClick={handleFollowToggle}
+          sx={{backgroundColor:"#1282f3"}}
         >
           {followed ? "Following" : "Follow"}
         </Button>
 
-        {/* CONNECT BUTTON */}
         {!requested ? (
+
           <Button
             variant="outlined"
             fullWidth
+            sx={{ mt: 1}}
             onClick={handleConnect}
-            style={{ marginTop: "8px" }}
           >
             Connect
           </Button>
+
         ) : (
+
           <Button
             variant="contained"
             fullWidth
-            style={{ marginTop: "8px" }}
+            disabled
+            sx={{ mt: 1 }}
           >
             Pending
           </Button>
+
         )}
 
       </Box>
 
     </Paper>
   );
-};
-
-export default SuggestionCard;
+}
