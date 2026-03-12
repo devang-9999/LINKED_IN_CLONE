@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
@@ -18,6 +16,7 @@ export class CommentsService {
     private readonly postRepository: Repository<Post>,
   ) {}
 
+  // CREATE COMMENT OR REPLY
   async create(dto: CreateCommentDto) {
     const { text, postId, userId, parentCommentId } = dto;
 
@@ -29,7 +28,7 @@ export class CommentsService {
       throw new NotFoundException('Post not found');
     }
 
-    let parentComment: any;
+    let parentComment: Comment | null = null;
 
     if (parentCommentId) {
       parentComment = await this.commentRepository.findOne({
@@ -46,7 +45,7 @@ export class CommentsService {
       userId,
       postId,
       post,
-      parentComment,
+      parentComment: parentComment || undefined,
     });
 
     await this.commentRepository.save(comment);
@@ -57,14 +56,23 @@ export class CommentsService {
     };
   }
 
-  async getCommentsByPost(postId: string) {
-    const comments = await this.commentRepository.find({
+  // GET COMMENTS WITH PAGINATION
+  async getCommentsByPost(postId: string, page = 1, limit = 2) {
+    const skip = (page - 1) * limit;
+
+    const [comments, total] = await this.commentRepository.findAndCount({
       where: {
         post: { id: postId },
         parentComment: IsNull(),
         isDeleted: false,
       },
+
+      relations: ['user'],
+
       order: { createdAt: 'DESC' },
+
+      skip,
+      take: limit,
     });
 
     const result: any[] = [];
@@ -73,22 +81,36 @@ export class CommentsService {
       result.push({
         id: comment.id,
         text: comment.text,
-        userId: comment.userId,
+        user: comment.user,
         createdAt: comment.createdAt,
-        replies: await this.loadReplies(comment.id),
       });
     }
 
-    return result;
+    return {
+      comments: result,
+      page,
+      limit,
+      total,
+      hasMore: skip + comments.length < total,
+    };
   }
 
-  private async loadReplies(commentId: string) {
-    const replies = await this.commentRepository.find({
+  // GET REPLIES WITH PAGINATION
+  async getReplies(commentId: string, page = 1, limit = 2) {
+    const skip = (page - 1) * limit;
+
+    const [replies, total] = await this.commentRepository.findAndCount({
       where: {
         parentComment: { id: commentId },
         isDeleted: false,
       },
+
+      relations: ['user'],
+
       order: { createdAt: 'ASC' },
+
+      skip,
+      take: limit,
     });
 
     const result: any[] = [];
@@ -97,15 +119,21 @@ export class CommentsService {
       result.push({
         id: reply.id,
         text: reply.text,
-        userId: reply.userId,
+        user: reply.user,
         createdAt: reply.createdAt,
-        replies: await this.loadReplies(reply.id),
       });
     }
 
-    return result;
+    return {
+      replies: result,
+      page,
+      limit,
+      total,
+      hasMore: skip + replies.length < total,
+    };
   }
 
+  // DELETE COMMENT (SOFT DELETE)
   async deleteComment(commentId: string) {
     const comment = await this.commentRepository.findOne({
       where: { id: commentId },
