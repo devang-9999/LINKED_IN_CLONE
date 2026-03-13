@@ -51,13 +51,21 @@ export class PostLikesService {
     return { message: 'Post liked' };
   }
 
-  async getPostLikes(postId: string) {
-    const likes = await this.likeRepository.find({
+  async getPostLikes(postId: string, userId: string) {
+    const likesCount = await this.likeRepository.count({
       where: { post: { id: postId } },
     });
 
+    const liked = await this.likeRepository.findOne({
+      where: {
+        userId,
+        post: { id: postId },
+      },
+    });
+
     return {
-      likesCount: likes.length,
+      likesCount,
+      isLikedByUser: !!liked,
     };
   }
 }

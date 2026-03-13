@@ -14,6 +14,7 @@ import { Auth } from 'src/auth/entities/auth.entity';
 import { Post } from 'src/posts/entities/post.entity';
 import { Follow } from 'src/follow/entities/follow.entity';
 import { Connection } from 'src/connection/entities/connection.entity';
+import { Repost } from 'src/repost/entities/repost.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -71,4 +72,7 @@ export class User {
 
   @OneToMany(() => Connection, (connection) => connection.receiver)
   receivedConnections: Connection[];
+
+  @OneToMany(() => Repost, (repost) => repost.user)
+  reposts: Repost[];
 }

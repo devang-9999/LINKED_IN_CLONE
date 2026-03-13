@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Controller, Post, Body, Param, Get } from '@nestjs/common';
 import { PostLikesService } from './post-likes.service';
 import { CreatePostLikeDto } from './dto/post-like.dto';
@@ -12,8 +11,8 @@ export class PostLikesController {
     return this.postLikesService.toggleLike(dto);
   }
 
-  @Get(':postId')
-  getLikes(@Param('postId') postId: string) {
-    return this.postLikesService.getPostLikes(postId);
+  @Get(':postId/:userId')
+  getLikes(@Param('postId') postId: string, @Param('userId') userId: string) {
+    return this.postLikesService.getPostLikes(postId, userId);
   }
 }

@@ -1,13 +1,25 @@
 .feed-page {
   background: #f3f2ef;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden; /* prevent whole page scroll */
+  display: flex;
+  flex-direction: column;
 }
 
 /* main layout */
 .feed-body {
-  max-width: 1128px;
+  width: 1200px;
   margin: 24px auto;
   display: grid;
   grid-template-columns: 225px 1fr 300px;
   gap: 24px;
+
+  flex: 1;
+  overflow: hidden; /* prevent body scroll */
+}
+
+.feed-container {
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 8px;
 }

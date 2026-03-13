@@ -6,7 +6,11 @@ export class CreatePostDto {
 
   @IsOptional()
   @IsString()
-  imageUrl?: string;
+  mediaUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  mediaType?: string;
 
   @IsString()
   userId: string;

@@ -21,6 +21,7 @@ import { CommentLikesModule } from './comment-likes/comment-likes.module';
 import { FollowModule } from './follow/follow.module';
 import { ConnectionModule } from './connection/connection.module';
 import { NotificationModule } from './notifications/notification.module';
+import { RepostsModule } from './repost/repost.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { NotificationModule } from './notifications/notification.module';
     FollowModule,
     ConnectionModule,
     NotificationModule,
+    RepostsModule,
   ],
 })
 export class AppModule {}

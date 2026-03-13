@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,9 +13,25 @@ export class PostsService {
     private readonly postRepository: Repository<Post>,
   ) {}
 
-  async create(createPostDto: CreatePostDto): Promise<Post> {
+  // async create(createPostDto: CreatePostDto): Promise<Post> {
+  //   const post = this.postRepository.create(createPostDto);
+  //   return await this.postRepository.save(post);
+  // }
+
+  async create(
+    createPostDto: CreatePostDto,
+    file?: Express.Multer.File,
+  ): Promise<Post> {
+    if (file) {
+      createPostDto.mediaUrl = `/uploads/${file.filename}`;
+
+      createPostDto.mediaType = file.mimetype.startsWith('video')
+        ? 'video'
+        : 'image';
+    }
+
     const post = this.postRepository.create(createPostDto);
-    return await this.postRepository.save(post);
+    return this.postRepository.save(post);
   }
 
   async findAll(): Promise<Post[]> {

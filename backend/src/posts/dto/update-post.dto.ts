@@ -7,5 +7,9 @@ export class UpdatePostDto {
 
   @IsOptional()
   @IsString()
-  imageUrl?: string;
+  mediaUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  mediaType?: string;
 }

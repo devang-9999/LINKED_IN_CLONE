@@ -51,13 +51,21 @@ export class CommentLikesService {
     return { message: 'Comment liked' };
   }
 
-  async getCommentLikes(commentId: string) {
-    const likes = await this.likeRepository.find({
+  async getCommentLikes(commentId: string, userId: string) {
+    const likes = await this.likeRepository.count({
       where: { comment: { id: commentId } },
     });
 
+    const existingLike = await this.likeRepository.findOne({
+      where: {
+        userId,
+        comment: { id: commentId },
+      },
+    });
+
     return {
-      likesCount: likes.length,
+      likesCount: likes,
+      isLikedByUser: !!existingLike,
     };
   }
 }

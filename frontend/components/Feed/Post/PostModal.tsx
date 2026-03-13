@@ -1,4 +1,8 @@
+/* eslint-disable jsx-a11y/alt-text */
+/* eslint-disable @next/next/no-img-element */
 "use client";
+
+import { useRef, useState } from "react";
 
 import "./PostModal.css";
 
@@ -11,7 +15,7 @@ import {
   IconButton,
   TextField,
   Button,
-  Stack
+  Stack,
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
@@ -20,29 +24,45 @@ import EventIcon from "@mui/icons-material/Event";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AddIcon from "@mui/icons-material/Add";
 import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-
-  content: string;
-  setContent: (value: string) => void;
-
-  imageUrl: string;
-  setImageUrl: (value: string) => void;
-
-  createPost: () => void;
+  createPost: (content: string, file?: File) => void;
 }
 
-export default function PostModal({
-  open,
-  onClose,
-  content,
-  setContent,
-  imageUrl,
-  setImageUrl,
-  createPost
-}: Props) {
+export default function PostModal({ open, onClose, createPost }: Props) {
+  const [content, setContent] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+
+    const selected = e.target.files[0];
+
+    setFile(selected);
+  };
+
+  const openFilePicker = () => {
+    fileInputRef.current?.click();
+  };
+
+  const removeMedia = () => {
+    setFile(null);
+  };
+
+  const handlePost = () => {
+    createPost(content, file || undefined);
+
+    setContent("");
+    setFile(null);
+
+    onClose();
+  };
+
   return (
     <Dialog
       open={open}
@@ -52,12 +72,10 @@ export default function PostModal({
       className="post-modal"
     >
       <DialogContent className="post-modal-content">
+        {/* HEADER */}
 
-        {/* Header */}
         <Box className="post-modal-header">
-
           <Stack direction="row" spacing={1.5} alignItems="center">
-
             <Avatar src="/profile.jpg" />
 
             <Box>
@@ -69,17 +87,14 @@ export default function PostModal({
                 Post to Anyone
               </Typography>
             </Box>
-
           </Stack>
 
           <IconButton onClick={onClose}>
             <CloseIcon />
           </IconButton>
-
         </Box>
 
-
-        {/* Text Input */}
+        {/* TEXT INPUT */}
 
         <TextField
           multiline
@@ -91,33 +106,53 @@ export default function PostModal({
           onChange={(e) => setContent(e.target.value)}
         />
 
+        {/* MEDIA PREVIEW */}
 
-        {/* Image URL */}
+        {file && (
+          <Box className="preview-container">
+            <IconButton className="remove-media" onClick={removeMedia}>
+              <DeleteIcon />
+            </IconButton>
 
-        <TextField
-          placeholder="Image URL (optional)"
-          fullWidth
-          sx={{ mt: 2 }}
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
+            {/* IMAGE / GIF */}
+
+            {file.type.startsWith("image") && (
+              <img src={URL.createObjectURL(file)} className="preview-media" />
+            )}
+
+            {/* VIDEO */}
+
+            {file.type.startsWith("video") && (
+              <video
+                controls
+                src={URL.createObjectURL(file)}
+                className="preview-media"
+              />
+            )}
+          </Box>
+        )}
+
+        {/* FILE INPUT */}
+
+        <input
+          type="file"
+          accept="image/*,video/*"
+          hidden
+          ref={fileInputRef}
+          onChange={handleFileSelect}
         />
 
-
-        {/* Bottom Actions */}
+        {/* BOTTOM ACTIONS */}
 
         <Box className="post-bottom">
-
           <Stack direction="row" spacing={1} alignItems="center">
-
             <IconButton>
               <SentimentSatisfiedAltIcon />
             </IconButton>
 
-            <Button className="rewrite-btn">
-              ✨ Rewrite with AI
-            </Button>
+            <Button className="rewrite-btn">✨ Rewrite with AI</Button>
 
-            <IconButton>
+            <IconButton onClick={openFilePicker}>
               <InsertPhotoIcon />
             </IconButton>
 
@@ -132,23 +167,19 @@ export default function PostModal({
             <IconButton>
               <AddIcon />
             </IconButton>
-
           </Stack>
 
-
-          {/* Post Button */}
+          {/* POST BUTTON */}
 
           <Button
             variant="contained"
             className="post-btn"
-            onClick={createPost}
+            onClick={handlePost}
             disabled={!content.trim()}
           >
             Post
           </Button>
-
         </Box>
-
       </DialogContent>
     </Dialog>
   );

@@ -12,6 +12,7 @@ import {
 import { User } from 'src/users/entities/user.entity';
 import { PostLike } from 'src/post-likes/entities/post-likes.entity';
 import { Comment } from 'src/comments/entities/comment.entity';
+import { Repost } from 'src/repost/entities/repost.entity';
 
 @Entity('posts')
 export class Post {
@@ -22,7 +23,10 @@ export class Post {
   content: string;
 
   @Column({ nullable: true })
-  imageUrl?: string;
+  mediaUrl?: string;
+
+  @Column({ nullable: true })
+  mediaType?: string;
 
   @Column()
   userId: string;
@@ -44,4 +48,7 @@ export class Post {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => Repost, (repost) => repost.post)
+  reposts: Repost[];
 }

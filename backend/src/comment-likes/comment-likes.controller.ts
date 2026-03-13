@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 
 import { CommentLikesService } from './comment-likes.service';
@@ -13,8 +12,11 @@ export class CommentLikesController {
     return this.commentLikesService.toggleLike(dto);
   }
 
-  @Get(':commentId')
-  getLikes(@Param('commentId') commentId: string) {
-    return this.commentLikesService.getCommentLikes(commentId);
+  @Get(':commentId/:userId')
+  getLikes(
+    @Param('commentId') commentId: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.commentLikesService.getCommentLikes(commentId, userId);
   }
 }

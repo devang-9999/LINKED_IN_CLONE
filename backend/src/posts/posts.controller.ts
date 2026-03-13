@@ -1,24 +1,39 @@
-/* eslint-disable prettier/prettier */
 import {
   Controller,
   Get,
-  Post as HttpPost,
   Body,
   Param,
   Patch,
   Delete,
+  Post,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from 'src/config/multerConfiguration/multerConfiguration';
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
-  @HttpPost()
-  create(@Body() createPostDto: CreatePostDto) {
+  @Post()
+  @UseInterceptors(FileInterceptor('file', multerOptions))
+  create(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() createPostDto: CreatePostDto,
+  ) {
+    if (file) {
+      createPostDto.mediaUrl = `/uploads/${file.filename}`;
+
+      createPostDto.mediaType = file.mimetype.startsWith('video')
+        ? 'video'
+        : 'image';
+    }
+
     return this.postsService.create(createPostDto);
   }
 
@@ -33,10 +48,7 @@ export class PostsController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updatePostDto: UpdatePostDto,
-  ) {
+  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
     return this.postsService.update(id, updatePostDto);
   }
 

@@ -1,3 +1,23 @@
+.preview-container{
+  position:relative;
+  margin-top:12px;
+}
+
+.preview-media{
+  width:100%;
+  max-height:350px;
+  object-fit:contain;
+  border-radius:8px;
+}
+
+.remove-media{
+  position:absolute;
+  top:8px;
+  right:8px;
+  background:white !important;
+  z-index:10;
+}
+
 .post-modal .MuiDialog-paper{
   border-radius:10px;
 }
@@ -29,11 +49,6 @@
   line-height:1.4;
 }
 
-.post-textarea textarea::placeholder{
-  font-size:22px;
-  color:#777;
-}
-
 .post-bottom{
   margin-top:20px;
   display:flex;
@@ -46,7 +61,6 @@
   border-radius:20px;
   text-transform:none;
   padding:4px 12px;
-  font-size:14px;
 }
 
 .post-btn{
